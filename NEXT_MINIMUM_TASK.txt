@@ -1,0 +1,15 @@
+NEXT MINIMUM TASK
+
+Purpose
+- Keep exactly one concrete, minimum task to start the next session immediately.
+
+Rules
+- Always exactly one task in this file.
+- Keep it tiny, specific, and actionable (should take ~15–60 minutes).
+- Update it at the end of each session (replace with the next minimum task).
+- At the start of a session: do this task first, then update the file.
+
+Current next task
+- Add "Crit Chance Up 2" upgrade node (duplicate existing crit chance, set fields, add to panel).
+
+

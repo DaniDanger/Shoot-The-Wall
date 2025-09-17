@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1ee5323082d7fa4984ea3cd2378b261, type: 3}
+  m_Name: FireRateUp1
+  m_EditorClassIdentifier: 
+  id: firerateup1
+  index: 12
+  displayName: Fire Rate Up 1
+  icon: {fileID: 21300000, guid: 6d2091d93ef64f741ac43610cacb6dda, type: 3}
+  maxLevel: 10
+  baseCost: 100
+  stepPerLevel: 100
+  damageAdd: 0
+  fireRateAdd: 0.25
+  critChanceAdd: 0
+  critMultiplierAdd: 0
+  redRiseDampen: 0
+  projectilesAdd: 0
+  heavySpawnChanceAdd: 0
+  wallDescendDampen: 0
+  overflowCarryAdd: 0
+  enablesSideCannons: 0
+  sideCannonBaseDamage: 0
+  sideCannonDamageAdd: 0
+  sideCannonFireRateAdd: 0
+  enablesSideCrits: 0
+  sideCritChanceAdd: 0
+  sideCritMultiplierAdd: 0
+  enablesPassThroughCluster: 0
+  clusterShardCountAdd: 0
+  clusterShardDamageAdd: 0
+  clusterShardSpeedAdd: 0
+  clusterShardLifetimeAdd: 0
+  clusterAngleAdd: 0
+  enablesKillExplosionSides: 0
+  killExplosionDamageAdd: 0
+  killExplosionExtraDepthAdd: 0
+  enablesGraveBomb: 0
+  graveBombBaseDamage: 40
+  graveBombDamageAdd: 0
+  graveBombDepthAdd: 0
+  effectTextOverride: 
+  layoutDir: 4
+  layoutOffset: {x: 100, y: 0}
+  prerequisites:
+  - upgrade: {fileID: 11400000, guid: b52fd612c9700374ba4538ab86ff50ac, type: 2}
+    minLevel: 1

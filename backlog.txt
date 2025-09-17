@@ -1,0 +1,12 @@
+BACKLOG
+
+Guidelines
+- Keep entries concrete and concise; multi-line if needed.
+- Optional tags: [bug], [idea], [task], [polish], [tech], [maybe] (use only if helpful).
+- When completed, move the item to Done below.
+
+Open
+
+Done
+
+

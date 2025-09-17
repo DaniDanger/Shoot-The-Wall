@@ -1,0 +1,20 @@
+WORKFLOW
+
+- Next Minimum Task (NEXT_MINIMUM_TASK.txt)
+  - Keep exactly one tiny, concrete task (15–60 min).
+  - At session start: do this task first.
+  - At session end: update it for the next session.
+
+- Backlog (backlog.txt)
+  - Capture ideas/bugs/tasks as concise entries; multi-line allowed.
+  - Optional tags: [bug], [idea], [task], [polish], [tech], [maybe]. Use only if helpful.
+  - When an item is completed, move it to the Done section.
+
+- Choosing the next minimum task (end of session)
+  - If you already have a clear task, write it directly.
+  - Otherwise, skim backlog and pick the best fit after brief discussion/thinking.
+
+- Goal
+  - Reduce startup friction so each session begins with one clear next step.
+
+

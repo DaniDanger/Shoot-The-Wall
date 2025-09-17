@@ -1,0 +1,27 @@
+Upgrade Ideas (brainstorm backlog)
+
+Offense
+- Crit Damage Up: Increase critMultiplier per level.
+- Projectile Speed Up: Increase projectileSpeed per level (revisit impact post-testing).
+
+Side Cannons
+- Side Ricochet: Side shots bounce off screen edges once; main cannon later when borders exist.
+- Side Flat Fire: Side cannons fire horizontally (90° left/right) instead of angled.
+
+On-Kill Explosions
+- Brick Kill Explosion (Sides): On brick death, deal flat damage (5–10) to left and right neighbors.
+- Brick Kill Explosion (Diagonals): On brick death, deal flat damage to up-left, up-right, down-right, down-left.
+
+Overflow
+- Overflow Overspill II: Apply overkill carry to one additional brick above (total 2 bricks).
+
+Passives (AFK)
+- Passive Panel: New UI section for helper ships (always active, cannot be destroyed).
+- Helper Ship I (Currency): Periodically shoots a brick; on hit grants currency. Works AFK; later add offline accrual.
+- Offline Earnings: Separate upgrade enabling currency accrual while offline (cap + sync on return).
+- Helper Ship II (Power): Additional helper that shoots and can be upgraded for damage/fire rate over time.
+
+Notes
+- Prioritize minimal wiring first; add tuning fields (damage, speed, lifetime, angle, amounts) in definitions.
+- Keep per-upgrade costs/levels data-driven in ScriptableObjects.
+

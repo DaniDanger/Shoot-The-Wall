@@ -1,0 +1,105 @@
+Shoot the Wall — Game Design Document (GDD)
+Version: 0.1 (MVP scope)
+
+1) Pitch
+   Arcade incremental: pilot a triangle ship that auto-fires straight up to carve a gap in a massive descending wall of tiny bricks while a red death line rises from the bottom. Pass through the wall before being pushed into the line. Earn currency from destroyed bricks to buy persistent upgrades via a simple reveal-as-you-buy tree.
+
+2) Platform & Presentation
+   - Engine: Unity URP 2D (fresh project)
+   - Orientation: Landscape 16:9; gameplay motion is top → bottom (wall descends, red line rises)
+   - Visual style: Primitive shapes (triangles, squares, simple lines), minimal VFX; readable high-contrast palette
+
+3) Core Loop
+   1. Move to survive while auto-shooting upward to carve holes in the wall
+   2. Slip through a passable gap before the wall shoves you into the red line
+   3. If you die, spend currency (bricks destroyed) on upgrades in a small tree, then retry stronger
+
+4) Controls
+   - Movement: WASD; constrained to screen bounds
+   - Aiming: none; shots always travel upward
+   - Shooting: AUTO by default (design choice for immediate fun and focus on navigation)
+
+5) Fail / Win Conditions
+   - Fail: touching the red death line (instant)
+   - Win per wave: successfully pass through the current wall; next wall spawns with increased difficulty. Continue until death.
+
+6) Economy
+   - Currency source: +1 per brick destroyed (tunable)
+   - Persistence: currency persists between runs
+   - Out of MVP: offline progression, prestige/reset systems
+
+7) Systems (MVP behavior)
+   Player
+     - Movement feel: responsive; bounded by screen edges (no wrap)
+     - Base speed: modest; final numbers tuned later
+     - Survivability: player dies only to the red line (wall pushes but does not damage)
+
+   Weapon / Projectiles
+     - Auto-shoot cadence: baseline 3 shots/sec (tunable)
+     - Projectiles travel straight up; fast; lifetime enough to reach top of screen
+     - Base damage, size, and pierce tuned for readable early TTK on single brick (~0.8–1.2s suggested)
+
+   Wall
+     - Constructed from a grid of small bricks (column count TBD; tested for readability/perf)
+     - Bricks have multi-hit HP (e.g., start at 3 HP; tunable)
+     - Wall slowly descends; its speed scales per wave
+     - Contact with ship: applies downward push (no direct damage)
+
+   Red Line (Hazard)
+     - Instant death on contact
+     - Behavior: rises slowly from bottom; can be slowed or eventually fixed via upgrades
+
+   Waves & Scaling (initial guardrails; all values tunable)
+     - Wave n: wall speed = base 0.30 + 0.05·n
+     - Brick HP = 3 + floor(n/2)
+     - Red line speed = base 0.08; multiplicatively reduced by upgrades
+
+8) Upgrade Tree (simple, reveal-as-you-buy)
+   - Structure: Start node visible; purchasing a node reveals 2–3 adjacent nodes. Keep total nodes small (≈10–14). Each node has 3–10 levels depending on category.
+   - Costing: per-node exponential (e.g., base 20, ×1.5 per level). Costs are independent per node.
+   - Categories & sample nodes (examples; subject to tuning):
+       Offense
+         • Fire Rate (+10% per level, up to 10)
+         • Damage (+1 per level, up to 10)
+         • Projectile Size (+10% per level, up to 10)
+         • Pierce (+1 target per level, up to 3–5)
+         • Multi-Shot (+1 projectile per unlock, up to +3; slight spread)
+       Control / Survival
+         • Move Speed (+8% per level)
+         • Handling/Acceleration (+12% per level)
+         • Red Line Dampener (−10% red line speed per level)
+         • Red Line Lock (final tier: red line becomes fixed)
+       Economy (optional for MVP)
+         • Salvage Yield (+10% currency gained per level)
+
+9) UI/UX
+   - HUD: currency counter, wave indicator, optional red-line distance bar
+   - Feedback: subtle screen shake on brick break; brick hit flash
+   - Death screen: centered upgrade tree (simple node graph), hover/tooltips, “Breach” button to restart
+
+10) MVP Deliverables (checklist)
+   - Movement, auto-shoot, collisions, red line hazard
+   - Wall generation and descent; endless waves with simple scaling
+   - Brick HP and destruction with currency drops
+   - Persistent currency storage
+   - Minimal upgrade tree with reveal-as-you-buy flow
+   - Minimal HUD and death-to-upgrade flow
+   - Basic SFX/UI polish pass
+
+11) Tuning Notes (starting points)
+   - Target time-to-break a single starting brick: ~0.8–1.2s with base stats
+   - Ensure readability: brick size and columns chosen such that the player can visually parse viable gaps
+   - Keep early wave duration short (30–60s) to feed the upgrade loop
+
+12) Open Questions (to decide)
+   - Exact grid width (columns) and brick size for readability/performance
+   - Base player move speed and acceleration profile
+   - Base projectile damage/speed/size and per-upgrade increments
+   - Wave pacing: time between walls; does the camera “breathe” after a pass?
+   - Currency loss on spend: can partial refunds or respec exist (likely no for MVP)?
+   - Multi-shot behavior: slight spread vs parallel line; does it reduce per-projectile damage?
+
+Appendix: Design Rationale for Auto-Shoot Default
+   Auto-shoot emphasizes navigation and wall-carving over input spam, removes early friction, and opens richer upgrade space (rate, damage, size, pierce, spread, bursts) instead of gating basic automation.
+
+
