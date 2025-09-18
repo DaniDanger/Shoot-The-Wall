@@ -29,7 +29,7 @@ public class DeathOverlay : MonoBehaviour
         onRetry = onRetryClicked;
         if (root != null) root.SetActive(true);
         if (titleText != null) titleText.text = "You touched the red line";
-        if (runCurrencyText != null) runCurrencyText.text = runCurrency.ToString();
+        if (runCurrencyText != null) runCurrencyText.text = ComputeRunEarned().ToString();
         if (totalCurrencyText != null) totalCurrencyText.text = totalCurrency.ToString();
     }
 
@@ -37,6 +37,24 @@ public class DeathOverlay : MonoBehaviour
     {
         if (root != null) root.SetActive(false);
         onRetry = null;
+    }
+
+    public void RefreshTotals()
+    {
+        if (totalCurrencyText != null)
+            totalCurrencyText.text = CurrencyStore.TotalCurrency.ToString();
+    }
+
+    public void RefreshRunEarned()
+    {
+        if (runCurrencyText != null)
+            runCurrencyText.text = ComputeRunEarned().ToString();
+    }
+
+    private int ComputeRunEarned()
+    {
+        int earned = Mathf.Max(0, CurrencyStore.TotalCurrency - CurrencyStore.RunStartTotal);
+        return earned;
     }
 
     private void HandleRetry()

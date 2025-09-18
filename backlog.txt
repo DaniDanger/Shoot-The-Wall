@@ -2,11 +2,35 @@ BACKLOG
 
 Guidelines
 - Keep entries concrete and concise; multi-line if needed.
-- Optional tags: [bug], [idea], [task], [polish], [tech], [maybe] (use only if helpful).
+- Optional tags: [bug], [idea], [task], [polish], [tech], [maybe] [questions](use only if helpful).
 - When completed, move the item to Done below.
 
 Open
+[idea] super crit chance, but not sure what a super crit should do
+[task] new upgrade for bounce shots
+[task] new upgrade for auto run
+[task] make upgrades to see player stats
+[task] make upgrade to see wall stats
+[task] make upgrade for passive gains
+[idea] add effect like a wall crumble on stage clear
+[task] save system
+[task] options menu
+[idea] maybe add challenges to the game for more depth for progression
+[task] add crt effect
+[task] add a hint on stage clear panel (hint: be warned to progress too early to next stage) [next-minimum]
+[task] add retry option next to continue button for stage clear panel
+[task] bundle shard pings, so shard pings that fly towards currency counter can bundle if there are enough like 10 or so
+[idea] make options highly customizable, not one big toggle for turn off all vfx or camera shake, but maybe dampen camera shake, disable side cannon sfx, very granular options
+
+[question] does grave bomb placement work reliable?
+
+[bug] Brick Kill Explosion can chain-react with Expansion after adding 2 extra dmg levels (now 7). Expected: no chain reaction; verify depth/damage application and guard flags.
 
 Done
+
+[bug] shards are white when explosion kill
+
+[bug] currency counter in death panel is not updated correctly, meaning the actuall currency counter can still collect money, and the currency counter does not get updated once death panel is open
+[task] add a earned this run currency counter to the death panel
 
 

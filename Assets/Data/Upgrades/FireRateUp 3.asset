@@ -20,7 +20,7 @@ MonoBehaviour:
   baseCost: 12000
   stepPerLevel: 6000
   damageAdd: 0
-  fireRateAdd: 0.25
+  fireRateAdd: 0.5
   critChanceAdd: 0
   critMultiplierAdd: 0
   redRiseDampen: 0
@@ -35,6 +35,13 @@ MonoBehaviour:
   enablesSideCrits: 0
   sideCritChanceAdd: 0
   sideCritMultiplierAdd: 0
+  enablesSideCannonsHorizontal: 0
+  horizSideCannonBaseDamage: 0
+  horizSideCannonDamageAdd: 0
+  horizSideCannonFireRateAdd: 0
+  enablesSideCritsHorizontal: 0
+  horizSideCritChanceAdd: 0
+  horizSideCritMultiplierAdd: 0
   enablesPassThroughCluster: 0
   clusterShardCountAdd: 0
   clusterShardDamageAdd: 0
@@ -49,6 +56,7 @@ MonoBehaviour:
   graveBombDamageAdd: 0
   graveBombDepthAdd: 0
   effectTextOverride: 
+  layoutAnchor: {fileID: 11400000, guid: e0a865ada2467624e9fcbc2ad8e3f760, type: 2}
   layoutDir: 4
   layoutOffset: {x: 100, y: 0}
   prerequisites:

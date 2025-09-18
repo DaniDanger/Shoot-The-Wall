@@ -18,6 +18,7 @@ public class Brick : MonoBehaviour
     [Tooltip("Child transform that holds the SpriteRenderer to scale on damage. If not set, the first SpriteRenderer found is used.")]
     public Transform visual;
     private Vector3 visualBaseScale = Vector3.one;
+    private Color spawnTint = Color.white;
     // Prevents chain reactions for on-kill explosion: depth 0 triggers, deeper calls skip.
     private static int onKillExplosionDepth;
     // One-shot flag: when true, this damage should not trigger neighbor explosion.
@@ -42,6 +43,11 @@ public class Brick : MonoBehaviour
         if (visual != null)
             visualBaseScale = visual.localScale;
 
+        // Initialize spawn tint defensively from current sprite color
+        var srInit = GetComponentInChildren<SpriteRenderer>();
+        if (srInit != null)
+            spawnTint = srInit.color;
+
         SetVisualScaleByHp();
     }
 
@@ -52,6 +58,16 @@ public class Brick : MonoBehaviour
         reward = Mathf.Max(0, rewardValue);
         // visuals handled by single SpriteRenderer again
         SetVisualScaleByHp();
+    }
+
+    public void SetSpawnTint(Color c)
+    {
+        spawnTint = c;
+    }
+
+    public Color GetSpawnTint()
+    {
+        return spawnTint;
     }
 
     // No collider-based push; player uses grid math collision against WallGrid.

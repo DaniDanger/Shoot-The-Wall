@@ -71,6 +71,22 @@ public class UpgradeDefinition : ScriptableObject
     [Tooltip("Crit multiplier added per level for side cannons (e.g., 0.2 = +0.2x per level).")]
     public float sideCritMultiplierAdd = 0f;
 
+    [Header("Side Cannons (Horizontal)")]
+    [Tooltip("If true, this upgrade enables horizontal side cannons (left/right) when level > 0.")]
+    public bool enablesSideCannonsHorizontal = false;
+    [Tooltip("Base damage per horizontal side shot when enabled. Used once if level > 0.")]
+    public int horizSideCannonBaseDamage = 0;
+    [Tooltip("Additional damage per level for horizontal side cannons.")]
+    public int horizSideCannonDamageAdd = 0;
+    [Tooltip("Horizontal side cannon fire rate (shots/sec) added per level.")]
+    public float horizSideCannonFireRateAdd = 0f;
+    [Tooltip("Enable crit system on horizontal side cannons when level > 0.")]
+    public bool enablesSideCritsHorizontal = false;
+    [Tooltip("Crit chance added per level for horizontal side cannons (0..1).")]
+    public float horizSideCritChanceAdd = 0f;
+    [Tooltip("Crit multiplier added per level for horizontal side cannons (e.g., 0.2 = +0.2x per level).")]
+    public float horizSideCritMultiplierAdd = 0f;
+
     [Header("Pass-through Cluster (Main Cannon)")]
     [Tooltip("Enables cluster shards when projectiles pass the top pass-through zone (main cannon only). Level > 0 enables.")]
     public bool enablesPassThroughCluster = false;
@@ -108,7 +124,9 @@ public class UpgradeDefinition : ScriptableObject
     [TextArea] public string effectTextOverride;
 
     [Header("Layout")]
-    [Tooltip("Placement relative to the first prerequisite's node. If None, falls back to index-based layout.")]
+    [Tooltip("Optional override: anchor this node relative to this upgrade instead of the first prerequisite.")]
+    public UpgradeDefinition layoutAnchor;
+    [Tooltip("Placement relative to the anchor node (layoutAnchor or first prerequisite). If None, falls back to index-based layout.")]
     public LayoutDirection8 layoutDir = LayoutDirection8.None;
     [Tooltip("Extra pixel offset applied after directional placement.")]
     public Vector2 layoutOffset = Vector2.zero;

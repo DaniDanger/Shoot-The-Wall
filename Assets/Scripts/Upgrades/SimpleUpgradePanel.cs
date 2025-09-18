@@ -16,11 +16,21 @@ public class SimpleUpgradePanel : MonoBehaviour
     public RectTransform linesRoot;
     public float lineThickness = 3f;
     public Color lineColor = Color.white;
+    [Tooltip("Optional panner to allow dragging the grid.")]
+    public UpgradePanelPanner panner;
 
     [Header("Layout")]
     public Vector2 nodeSize = new Vector2(64, 64);
     [Tooltip("Uniform spacing used between nodes (pixels).")]
     public float nodeSpacing = 24f;
+
+    [Header("Reveal Animation")]
+    [Tooltip("Delay added between each node reveal (seconds).")]
+    public float revealStagger = 0.015f;
+    [Tooltip("Duration of each node's reveal animation (seconds).")]
+    public float revealIntroDuration = 0.05f;
+    [Tooltip("If true, animate reveals only when nodes unlock (not on initial build).")]
+    public bool revealOnlyOnUnlock = true;
 
     [Tooltip("Optional: choose which definition is used as the starting center node.")]
     public UpgradeDefinition startingNodeOverride;
@@ -50,6 +60,9 @@ public class SimpleUpgradePanel : MonoBehaviour
     [Tooltip("When enabled, logs upgrade node layout ordering and anchor decisions.")]
     public bool debugLayout = false;
 
+    // Internal state: guards reveal animation on initial build
+    private bool hasBuiltInitialNodes = false;
+
     private void Awake()
     {
         Hide();
@@ -60,6 +73,8 @@ public class SimpleUpgradePanel : MonoBehaviour
     public void Show()
     {
         if (root != null) root.SetActive(true);
+        hasBuiltInitialNodes = false;
+        EnsurePanner();
         EnsureNodes();
         // Ensure the shop reflects only total currency by banking any run currency now
         CurrencyStore.BankRunToTotal();
@@ -71,6 +86,8 @@ public class SimpleUpgradePanel : MonoBehaviour
             SimpleUpgrades.SetCritBaseCost(config.critBasePrice);
         }
         RefreshUI();
+        StartCoroutine(DelayedRefreshRoutine());
+        hasBuiltInitialNodes = true;
     }
 
     public void Hide()
@@ -135,8 +152,12 @@ public class SimpleUpgradePanel : MonoBehaviour
                 {
                     var pos = GetAnchoredPosition(def);
                     var node = CreateNode(def, pos);
-                    PlayNodeReveal(node, delay);
-                    delay += 0.05f;
+                    bool shouldAnimate = !revealOnlyOnUnlock || hasBuiltInitialNodes;
+                    if (shouldAnimate)
+                    {
+                        PlayNodeReveal(node, delay);
+                        delay += Mathf.Max(0f, revealStagger);
+                    }
                 }
             }
         }
@@ -327,6 +348,36 @@ public class SimpleUpgradePanel : MonoBehaviour
         RedrawLines();
     }
 
+    private void EnsurePanner()
+    {
+        if (gridRoot == null) return;
+        if (panner == null)
+        {
+            panner = gridRoot.GetComponent<UpgradePanelPanner>();
+            if (panner == null)
+                panner = gridRoot.gameObject.AddComponent<UpgradePanelPanner>();
+        }
+        if (panner != null && panner.content == null)
+            panner.content = gridRoot;
+        // Ensure the grid can receive pointer events
+        var img = gridRoot.GetComponent<UnityEngine.UI.Image>();
+        if (img == null)
+            img = gridRoot.gameObject.AddComponent<UnityEngine.UI.Image>();
+        img.color = new Color(0f, 0f, 0f, 0f);
+        img.raycastTarget = true;
+    }
+
+    private void OnEnable()
+    {
+        StartCoroutine(DelayedRefreshRoutine());
+    }
+
+    private System.Collections.IEnumerator DelayedRefreshRoutine()
+    {
+        yield return null;
+        RefreshUI();
+    }
+
     // Removed obsolete per-upgrade helpers
 
     private void EnsureLinesRoot()
@@ -415,7 +466,7 @@ public class SimpleUpgradePanel : MonoBehaviour
         rt.localScale = Vector3.zero;
 
         float t = 0f;
-        const float introDuration = 0.08f;
+        float introDuration = Mathf.Max(0.0001f, revealIntroDuration);
         while (t < introDuration)
         {
             t += Time.unscaledDeltaTime;

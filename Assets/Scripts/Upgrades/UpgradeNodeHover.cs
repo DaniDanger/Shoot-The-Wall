@@ -143,6 +143,43 @@ public class UpgradeNodeHover : MonoBehaviour, IPointerEnterHandler, IPointerExi
             if (!first) sb.Append("\n"); first = false;
             sb.Append($"+{definition.sideCritMultiplierAdd:0.##}x side crit damage");
         }
+        // Horizontal side cannons
+        if (definition.enablesSideCannonsHorizontal)
+        {
+            if (!first) sb.Append("\n"); first = false;
+            int baseDmgH = Mathf.Max(0, definition.horizSideCannonBaseDamage);
+            int addH = Mathf.Max(0, definition.horizSideCannonDamageAdd);
+            if (addH > 0)
+                sb.Append($"Unlocks horizontal side cannons (per side dmg: {baseDmgH} + {addH} per level)");
+            else
+                sb.Append($"Unlocks horizontal side cannons (per side dmg: {baseDmgH})");
+        }
+        if (!definition.enablesSideCannonsHorizontal && definition.horizSideCannonDamageAdd != 0)
+        {
+            if (!first) sb.Append("\n"); first = false;
+            int addH = Mathf.Max(0, definition.horizSideCannonDamageAdd);
+            sb.Append($"+{addH} horizontal side damage per level");
+        }
+        if (Mathf.Abs(definition.horizSideCannonFireRateAdd) > 0.0001f)
+        {
+            if (!first) sb.Append("\n"); first = false;
+            sb.Append($"+{definition.horizSideCannonFireRateAdd:0.##} horizontal side shots/s");
+        }
+        if (definition.enablesSideCritsHorizontal)
+        {
+            if (!first) sb.Append("\n"); first = false;
+            sb.Append("Enables crits for horizontal side cannons");
+        }
+        if (Mathf.Abs(definition.horizSideCritChanceAdd) > 0.0001f)
+        {
+            if (!first) sb.Append("\n"); first = false;
+            sb.Append($"+{definition.horizSideCritChanceAdd * 100f:0.#}% horizontal side crit chance");
+        }
+        if (Mathf.Abs(definition.horizSideCritMultiplierAdd) > 0.0001f)
+        {
+            if (!first) sb.Append("\n"); first = false;
+            sb.Append($"+{definition.horizSideCritMultiplierAdd:0.##}x horizontal side crit damage");
+        }
         return sb.ToString();
     }
 

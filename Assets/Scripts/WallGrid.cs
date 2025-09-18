@@ -935,7 +935,10 @@ public class WallGrid : MonoBehaviour
         // Tint main sprite renderer
         var sr2 = brick.GetComponentInChildren<SpriteRenderer>();
         if (sr2 != null && defToUse != null)
+        {
             sr2.color = defToUse.tint;
+            brick.SetSpawnTint(defToUse.tint);
+        }
         bricks.Add(brick);
         // Track coordinates for spillover queries
         if (r >= 0 && r < rows && c >= 0 && c < columns)
@@ -1048,7 +1051,10 @@ public class WallGrid : MonoBehaviour
         brick.Configure(hp, brick.reward);
         var sr2 = brick.GetComponentInChildren<SpriteRenderer>();
         if (sr2 != null && defToUse != null)
+        {
             sr2.color = defToUse.tint;
+            brick.SetSpawnTint(defToUse.tint);
+        }
 
         // Preserve any grave bomb marker visual on reuse by reapplying its tint
         var grave = brick.GetComponent<GraveBombMarker>();
@@ -1075,13 +1081,18 @@ public class WallGrid : MonoBehaviour
         }
         else
         {
-            // Choose column nearest to stored world X; place on lowest ring row
+            // Choose column nearest to stored world X; allow any row in that column (first match attaches)
             int colFromX = WorldXToColumn(GraveBombState.PendingWorldX);
-            shouldAttach = (colFromX == c && r == ringStartRow);
+            shouldAttach = (colFromX == c);
         }
         if (!shouldAttach)
         {
-            try { Debug.Log($"[GraveBomb] Place: skipped at r={r} c={c} (pendingExact={GraveBombState.HasExactCell} targetCol={(GraveBombState.HasExactCell ? GraveBombState.PendingCol : WorldXToColumn(GraveBombState.PendingWorldX))} ringStart={ringStartRow})"); } catch { }
+            // Debug: log first candidate skip per row to avoid spam
+            try
+            {
+                Debug.Log($"[GraveBomb] Place: skip r={r} c={c} exact={GraveBombState.HasExactCell} targetCell={(GraveBombState.HasExactCell ? ($"{GraveBombState.PendingRow},{GraveBombState.PendingCol}") : "-")} targetCol={(GraveBombState.HasExactCell ? GraveBombState.PendingCol : WorldXToColumn(GraveBombState.PendingWorldX))} ringStart={ringStartRow}");
+            }
+            catch { }
             return;
         }
 
@@ -1093,7 +1104,7 @@ public class WallGrid : MonoBehaviour
             marker.ApplyTint();
             GraveBombState.ActivePlaced = true;
             GraveBombState.Pending = false;
-            try { Debug.Log($"[GraveBomb] Place: OK at r={r} c={c} dmg={RunModifiers.GraveBombDamage:0.##} depth={RunModifiers.GraveBombDepth}"); } catch { }
+            try { Debug.Log($"[GraveBomb] Place: OK at r={r} c={c} dmg={RunModifiers.GraveBombDamage:0.##} depth={RunModifiers.GraveBombDepth} wave={(GameManager.Instance != null ? GameManager.Instance.GetWaveIndex() : -1)}"); } catch { }
         }
     }
 

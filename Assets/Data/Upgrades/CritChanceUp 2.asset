@@ -35,6 +35,13 @@ MonoBehaviour:
   enablesSideCrits: 0
   sideCritChanceAdd: 0
   sideCritMultiplierAdd: 0
+  enablesSideCannonsHorizontal: 0
+  horizSideCannonBaseDamage: 0
+  horizSideCannonDamageAdd: 0
+  horizSideCannonFireRateAdd: 0
+  enablesSideCritsHorizontal: 0
+  horizSideCritChanceAdd: 0
+  horizSideCritMultiplierAdd: 0
   enablesPassThroughCluster: 0
   clusterShardCountAdd: 0
   clusterShardDamageAdd: 0
@@ -49,6 +56,7 @@ MonoBehaviour:
   graveBombDamageAdd: 0
   graveBombDepthAdd: 0
   effectTextOverride: 
+  layoutAnchor: {fileID: 0}
   layoutDir: 4
   layoutOffset: {x: -15, y: 0}
   prerequisites:

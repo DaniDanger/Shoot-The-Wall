@@ -21,6 +21,7 @@ public class AutoShooter : MonoBehaviour
     public float sideAngleDegrees = 25f;
     public float sideFireRate = 1f;
     private float nextSideFireTime;
+    private float nextSideHoriFireTime;
     private float baseSideFireRate;
     public float offsetJitter = 0.03f;
 
@@ -68,6 +69,16 @@ public class AutoShooter : MonoBehaviour
                 nextSideFireTime = Time.time + 1f / cadence;
             }
         }
+        // Independent horizontal side cannons cadence
+        if (RunModifiers.SideCannonsHorizontalEnabled && projectilePool != null)
+        {
+            float rate = RunModifiers.SideHoriFireRate > 0f ? RunModifiers.SideHoriFireRate : fireRate;
+            if (rate > 0f && Time.time >= nextSideHoriFireTime)
+            {
+                FireSideHoriVolley();
+                nextSideHoriFireTime = Time.time + 1f / rate;
+            }
+        }
     }
 
     public void SetFireRate(float newRate)
@@ -84,6 +95,8 @@ public class AutoShooter : MonoBehaviour
             nextFireTime = Time.time + 1f / Mathf.Max(0.0001f, fireRate);
             float cadence = sideFireRate > 0f ? sideFireRate : fireRate;
             nextSideFireTime = Time.time + 1f / Mathf.Max(0.0001f, cadence);
+            float rate = RunModifiers.SideHoriFireRate > 0f ? RunModifiers.SideHoriFireRate : fireRate;
+            nextSideHoriFireTime = Time.time + 1f / Mathf.Max(0.0001f, rate);
         }
     }
 
@@ -176,6 +189,49 @@ public class AutoShooter : MonoBehaviour
         }
 
         // Play side shoot SFX once per side volley
+        if (audioManager != null)
+            audioManager.PlaySfx(AudioManager.SfxId.SideShoot, 1f, 0.02f);
+    }
+
+    private void FireSideHoriVolley()
+    {
+        if (!RunModifiers.SideCannonsHorizontalEnabled || projectilePool == null)
+            return;
+
+        Vector2 dir = Vector2.up; // not used for left/right rotation
+        Vector3 basePos = transform.position + (Vector3)spawnOffset;
+        float sideDmg = Mathf.Max(0f, RunModifiers.SideHoriDamage > 0 ? RunModifiers.SideHoriDamage : 1);
+
+        Vector3 leftPos = sideLeftMuzzle != null ? sideLeftMuzzle.position : (basePos + new Vector3(-0.4f, 0f, 0f));
+        Vector2 leftDir = Vector2.left;
+        var pL = projectilePool.Get();
+        if (pL != null)
+        {
+            float dmgL = sideDmg;
+            bool critL = false;
+            if (RunModifiers.SideHoriCritsEnabled && Random.value < Mathf.Clamp01(RunModifiers.SideHoriCritChance))
+            {
+                critL = true;
+                dmgL = Mathf.Max(0f, dmgL * Mathf.Max(1f, RunModifiers.SideHoriCritMultiplier));
+            }
+            pL.Launch(leftPos, leftDir, projectileSpeed, projectileLifetime, dmgL, critL);
+        }
+
+        Vector3 rightPos = sideRightMuzzle != null ? sideRightMuzzle.position : (basePos + new Vector3(0.4f, 0f, 0f));
+        Vector2 rightDir = Vector2.right;
+        var pR = projectilePool.Get();
+        if (pR != null)
+        {
+            float dmgR = sideDmg;
+            bool critR = false;
+            if (RunModifiers.SideHoriCritsEnabled && Random.value < Mathf.Clamp01(RunModifiers.SideHoriCritChance))
+            {
+                critR = true;
+                dmgR = Mathf.Max(0f, dmgR * Mathf.Max(1f, RunModifiers.SideHoriCritMultiplier));
+            }
+            pR.Launch(rightPos, rightDir, projectileSpeed, projectileLifetime, dmgR, critR);
+        }
+
         if (audioManager != null)
             audioManager.PlaySfx(AudioManager.SfxId.SideShoot, 1f, 0.02f);
     }

@@ -69,6 +69,11 @@ public class HudController : MonoBehaviour
         displayedTotal = CurrencyStore.TotalCurrency;
         if (totalCurrencyText != null)
             totalCurrencyText.text = displayedTotal.ToString();
+        // Push update to death overlay if present
+        if (GameManager.Instance != null && GameManager.Instance.deathOverlay != null)
+            GameManager.Instance.deathOverlay.RefreshTotals();
+        if (GameManager.Instance != null && GameManager.Instance.deathOverlay != null)
+            GameManager.Instance.deathOverlay.RefreshRunEarned();
     }
 
     public void RefreshCurrencyLabel()

@@ -28,6 +28,14 @@ public static class RunModifiers
     public static float SideCritChance = 0f;
     public static float SideCritMultiplier = 1f;
 
+    // Horizontal side cannons (fire straight left/right)
+    public static bool SideCannonsHorizontalEnabled = false;
+    public static int SideHoriDamage = 0;
+    public static float SideHoriFireRate = 0f; // 0 = fallback to main fire rate
+    public static bool SideHoriCritsEnabled = false;
+    public static float SideHoriCritChance = 0f;
+    public static float SideHoriCritMultiplier = 1f;
+
     // Grave bomb (spawn a bomb brick next run at death location)
     public static bool GraveBombEnabled = false;
     public static float GraveBombDamage = 1f;

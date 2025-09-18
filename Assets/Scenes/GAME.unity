@@ -382,7 +382,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 90488018}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -434,8 +434,12 @@ MonoBehaviour:
   linesRoot: {fileID: 721841312}
   lineThickness: 3
   lineColor: {r: 1, g: 1, b: 1, a: 1}
+  panner: {fileID: 0}
   nodeSize: {x: 86, y: 86}
   nodeSpacing: 48
+  revealStagger: 0.015
+  revealIntroDuration: 0.05
+  revealOnlyOnUnlock: 1
   startingNodeOverride: {fileID: 11400000, guid: b52fd612c9700374ba4538ab86ff50ac, type: 2}
   definitions:
   - {fileID: 11400000, guid: b52fd612c9700374ba4538ab86ff50ac, type: 2}
@@ -465,6 +469,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d50e63a14ce889b45aca456c17be5379, type: 2}
   - {fileID: 11400000, guid: f93eee09f45e65049aaf53b47d70536d, type: 2}
   - {fileID: 11400000, guid: 5aedd3925b78f1b438f8e46282765092, type: 2}
+  - {fileID: 11400000, guid: 5e8927bebcd20454d8dde4c95df890fc, type: 2}
+  - {fileID: 11400000, guid: 1a47742b98841a9419ceca022b9da9e1, type: 2}
+  - {fileID: 11400000, guid: aa03440ea8cb8414ab106df360f489fb, type: 2}
   nodeNormalColor: {r: 1, g: 1, b: 1, a: 1}
   nodeCannotAffordColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   nodeMaxColor: {r: 0, g: 1, b: 0, a: 1}
@@ -3192,7 +3199,7 @@ MonoBehaviour:
   projectilePool: {fileID: 1410247494}
   sideLeftMuzzle: {fileID: 2038489590}
   sideRightMuzzle: {fileID: 1070255092}
-  sideAngleDegrees: 30
+  sideAngleDegrees: 20
   sideFireRate: 1
   offsetJitter: 0.03
   critChance: 0
@@ -5684,7 +5691,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -4.5, z: 0}
-  m_LocalScale: {x: 26.666668, y: 0.1, z: 1}
+  m_LocalScale: {x: 35.555557, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

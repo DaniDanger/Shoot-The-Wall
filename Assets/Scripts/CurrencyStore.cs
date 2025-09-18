@@ -6,13 +6,20 @@ public static class CurrencyStore
     private const string PersistKey = "Currency_Total";
 
     private static int runCurrency;
+    private static int runStartTotal;
 
     public static int RunCurrency => runCurrency;
     public static int TotalCurrency => PlayerPrefs.GetInt(PersistKey, 0);
+    public static int RunStartTotal => runStartTotal;
 
     public static void ResetRun()
     {
         runCurrency = 0;
+    }
+
+    public static void MarkRunStart()
+    {
+        runStartTotal = TotalCurrency;
     }
 
     public static void AddRunCurrency(int amount)

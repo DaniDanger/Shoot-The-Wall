@@ -148,6 +148,8 @@ public class Projectile : MonoBehaviour
                 {
                     wall.DetonateGrave(hitBrick);
                 }
+                // Use brick's spawn tint for shard color (captured pre-damage)
+                Color preColor = hitBrick != null ? hitBrick.GetSpawnTint() : Color.white;
                 float dmg = Mathf.Max(0f, damage);
                 float before = hitBrick.CurrentHp;
                 hitBrick.TakeDamage(dmg);
@@ -172,11 +174,8 @@ public class Projectile : MonoBehaviour
                 shardFx = fx;
                 if (shardFx != null)
                 {
-                    Color color = Color.white;
-                    var sr = hitBrick.GetComponentInChildren<SpriteRenderer>();
-                    if (sr != null) color = sr.color;
                     int count = after > 0f ? Mathf.Max(1, Mathf.RoundToInt(dmg)) : Mathf.Max(1, Mathf.RoundToInt(hitBrick.maxHp));
-                    shardFx.EmitShards(impactPoint, direction, count, color, wasCrit);
+                    shardFx.EmitShards(impactPoint, direction, count, preColor, wasCrit);
                 }
 
                 var shaker = CameraShaker.Instance;
@@ -264,6 +263,8 @@ public class Projectile : MonoBehaviour
             }
             // Guard immediately to avoid duplicate enters in the same frame
             hasHit = true;
+            // Use brick's spawn tint for shard color (captured pre-damage)
+            Color preColor = brick != null ? brick.GetSpawnTint() : Color.white;
             float dmg = Mathf.Max(0f, damage);
             float before = brick.CurrentHp;
             brick.TakeDamage(dmg);
@@ -297,13 +298,9 @@ public class Projectile : MonoBehaviour
             shardFx = fx;
             if (shardFx != null)
             {
-                // Try color from brick sprite (for non-crit baseline)
-                Color color = Color.white;
-                var sr = brick.GetComponentInChildren<SpriteRenderer>();
-                if (sr != null) color = sr.color;
                 int count = after > 0f ? Mathf.Max(1, Mathf.RoundToInt(dmg)) : Mathf.Max(1, Mathf.RoundToInt(brick.maxHp));
                 count = Mathf.Max(1, count);
-                shardFx.EmitShards(transform.position, direction, count, color, wasCrit);
+                shardFx.EmitShards(transform.position, direction, count, preColor, wasCrit);
             }
 
             // Subtle camera shake on hit

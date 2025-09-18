@@ -94,6 +94,14 @@ public static class UpgradeRuntimeApplier
         bool sideCritsEnabled = false;
         float sideCritChanceAdd = 0f;
         float sideCritMultAdd = 0f;
+        // Horizontal side cannons
+        bool sideHori = false;
+        int sideHoriDamageBase = 0;
+        int sideHoriDamageAddOnly = 0;
+        float totalSideHoriFireAdd = 0f;
+        bool sideHoriCritsEnabled = false;
+        float sideHoriCritChanceAdd = 0f;
+        float sideHoriCritMultAdd = 0f;
         // On-kill explosion
         bool killExplosionEnabled = false;
         float totalKillExplosionDamage = 0f;
@@ -146,6 +154,26 @@ public static class UpgradeRuntimeApplier
             if (def.sideCritMultiplierAdd != 0f)
                 sideCritMultAdd += def.sideCritMultiplierAdd * lvl;
 
+            // Horizontal side cannons
+            if (def.enablesSideCannonsHorizontal && lvl > 0)
+            {
+                sideHori = true;
+                int candH = Mathf.Max(0, def.horizSideCannonBaseDamage) + Mathf.Max(0, def.horizSideCannonDamageAdd) * (lvl - 1);
+                sideHoriDamageBase = Mathf.Max(sideHoriDamageBase, candH);
+            }
+            if (!def.enablesSideCannonsHorizontal && def.horizSideCannonDamageAdd != 0)
+            {
+                sideHoriDamageAddOnly += Mathf.Max(0, def.horizSideCannonDamageAdd) * lvl;
+            }
+            if (def.horizSideCannonFireRateAdd != 0f)
+                totalSideHoriFireAdd += def.horizSideCannonFireRateAdd * lvl;
+            if (def.enablesSideCritsHorizontal && lvl > 0)
+                sideHoriCritsEnabled = true;
+            if (def.horizSideCritChanceAdd != 0f)
+                sideHoriCritChanceAdd += def.horizSideCritChanceAdd * lvl;
+            if (def.horizSideCritMultiplierAdd != 0f)
+                sideHoriCritMultAdd += def.horizSideCritMultiplierAdd * lvl;
+
             // Cluster
             if (def.enablesPassThroughCluster && lvl > 0)
                 clusterEnabled = true;
@@ -197,6 +225,13 @@ public static class UpgradeRuntimeApplier
         RunModifiers.SideCritsEnabled = sideCritsEnabled;
         RunModifiers.SideCritChance = Mathf.Max(0f, sideCritChanceAdd);
         RunModifiers.SideCritMultiplier = Mathf.Max(1f, 1f + sideCritMultAdd);
+        // Horizontal
+        RunModifiers.SideCannonsHorizontalEnabled = sideHori;
+        RunModifiers.SideHoriDamage = sideHori ? Mathf.Max(0, sideHoriDamageBase + sideHoriDamageAddOnly) : 0;
+        RunModifiers.SideHoriFireRate = Mathf.Max(0f, totalSideHoriFireAdd);
+        RunModifiers.SideHoriCritsEnabled = sideHoriCritsEnabled;
+        RunModifiers.SideHoriCritChance = Mathf.Max(0f, sideHoriCritChanceAdd);
+        RunModifiers.SideHoriCritMultiplier = Mathf.Max(1f, 1f + sideHoriCritMultAdd);
         try
         {
             Debug.Log($"[SideCrits] enabled={RunModifiers.SideCritsEnabled} chance={RunModifiers.SideCritChance:0.###} mult={RunModifiers.SideCritMultiplier:0.###}");

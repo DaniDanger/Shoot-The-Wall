@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour
         waveIndex = Mathf.Max(0, saved);
         try { Debug.Log($"[Waves] Awake: saved={saved}, start={startWaveIndex}, count={(wallManager != null && wallManager.waves != null ? wallManager.waves.Count : 0)} => waveIndex={waveIndex}"); } catch { }
         CurrencyStore.ResetRun();
+        CurrencyStore.MarkRunStart();
     }
 
     private void Start()
@@ -88,7 +89,10 @@ public class GameManager : MonoBehaviour
             try { Debug.Log($"[Waves] SpawnNextWall: waveIndex={waveIndex}, clamped={clamped}, count={wallManager.waves.Count}"); } catch { }
             // If a grave was scheduled for a different wave, clear stale flags now
             if (GraveBombState.Pending && GraveBombState.PendingWaveIndex != clamped)
+            {
+                try { Debug.Log($"[GraveBomb] Pending cleared: pendingWave={GraveBombState.PendingWaveIndex} != clamped={clamped}"); } catch { }
                 GraveBombState.Pending = false;
+            }
             // A placed grave belongs to a previous wall; new wall should not keep it active
             if (GraveBombState.ActivePlaced)
                 GraveBombState.ActivePlaced = false;
@@ -268,8 +272,8 @@ public class GameManager : MonoBehaviour
 
         // Bank once
         CurrencyStore.BankRunToTotal();
-        // Schedule grave bomb if enabled and none active/pending
-        if (RunModifiers.GraveBombEnabled && !GraveBombState.ActivePlaced)
+        // Schedule grave bomb for the next run if enabled
+        if (RunModifiers.GraveBombEnabled)
         {
             try { Debug.Log($"[GraveBomb] Schedule: enabled={RunModifiers.GraveBombEnabled} activePlaced={GraveBombState.ActivePlaced} wave={waveIndex}"); } catch { }
             GraveBombState.Pending = true;
@@ -284,14 +288,20 @@ public class GameManager : MonoBehaviour
                     GraveBombState.HasExactCell = true;
                     GraveBombState.PendingRow = r;
                     GraveBombState.PendingCol = c;
+                    try { Debug.Log($"[GraveBomb] Pending details (exact): row={GraveBombState.PendingRow} col={GraveBombState.PendingCol} wave={GraveBombState.PendingWaveIndex}"); } catch { }
                 }
                 else
                 {
                     GraveBombState.HasExactCell = false;
                     GraveBombState.PendingWorldX = player.transform.position.x;
+                    try { Debug.Log($"[GraveBomb] Pending details (column-x): worldX={GraveBombState.PendingWorldX:0.##} wave={GraveBombState.PendingWaveIndex}"); } catch { }
                 }
             }
             else { }
+        }
+        else
+        {
+            try { Debug.Log($"[GraveBomb] Schedule: SKIP enabled={RunModifiers.GraveBombEnabled} activePlaced={GraveBombState.ActivePlaced} pending={GraveBombState.Pending}"); } catch { }
         }
 
         // Show death overlay
@@ -312,6 +322,7 @@ public class GameManager : MonoBehaviour
     {
         // Reset run state
         CurrencyStore.ResetRun();
+        CurrencyStore.MarkRunStart();
         // Clear any stale grave bomb placement/schedule at the start of a new run
         GraveBombState.ActivePlaced = false;
 

@@ -10,6 +10,6 @@ Rules
 - At the start of a session: do this task first, then update the file.
 
 Current next task
-- Add "Crit Chance Up 2" upgrade node (duplicate existing crit chance, set fields, add to panel).
+- Add a hint on the stage clear panel warning about progressing too early.
 
 
