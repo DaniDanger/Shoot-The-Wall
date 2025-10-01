@@ -12,6 +12,6 @@ Rules
 - End of session (when stopping work/closing Cursor): replace with the next minimum task.
 
 Current next task
-- Create "Shard Amplifier" UpgradeDefinition asset and add to upgrade panel
+- Create a StartScreen scene (basic UI + load Game scene)
 
 

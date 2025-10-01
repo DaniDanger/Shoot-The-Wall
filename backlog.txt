@@ -7,22 +7,17 @@ Guidelines
 
 Open
 [bug]
-[fix] retry button in stage cleared does nothing?
 
 [task]
 [task] save system
-[task] options menu
 [task] hide lock stage button and only enable when auto run is unlocked
 [task] add shop button to stage clear panel
 [task] new upgrade for bounce shots
 [task] make upgrades to see player stats
 [task] make upgrade to see wall stats
-[task] remove clampping for overflow carry percent(or make upgrade to remove clamping)
 [task] add crt effect
 
 [mini task]
-[mini task] move stage selector node a little bit more up(layout)
-[mini task] move side cannon crit damage more to the right (layout
 
 [tech]
 [tech] set Application.runInBackground = true in startup (Project Settings already set)
@@ -42,8 +37,13 @@ DONE
 [bug] Brick Kill Explosion can chain-react with Expansion after adding 2 extra dmg levels (now 7). Expected: no chain reaction; verify depth/damage application and guard flags.
 [idea] when we have a auto run system, or for passives, we can make an upgrade to increase stage clear bonus
 [idea] when we have a auto run system, or for passives, we can make an upgrade to increase stage clear bonus
+[task] remove clampping for overflow carry percent(or make upgrade to remove clamping)
+[fix] retry button in stage cleared does nothing?
 
 [task] add hit sfx for bricks
+[mini task] move stage selector node a little bit more up(layout)
+[mini task] move side cannon crit damage more to the right (layout
+[task] options menu
 
 [bug] shards are white when explosion kill
 [task] add label describer for death over panel to clarify what is total currency and gained last run
