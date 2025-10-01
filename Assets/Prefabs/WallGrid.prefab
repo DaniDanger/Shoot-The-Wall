@@ -84,11 +84,20 @@ MonoBehaviour:
   startY: 4.5
   endY: -4.5
   passMargin: 0.2
-  passOffsetY: 1
+  passOffsetY: 2
   passThroughZoneLayer:
     serializedVersion: 2
     m_Bits: 1024
   graveBombTint: {r: 0.6792453, g: 0.6792453, b: 0.6792453, a: 1}
+  graveCenterFlashColor: {r: 1, g: 0.95, b: 0.6, a: 1}
+  graveCenterFlashDuration: 0.08
+  graveCenterSquashScale: 1.15
+  graveCenterSquashTime: 0.06
+  graveNeighborStartDelay: 0.06
+  graveNeighborFlashColor: {r: 1, g: 0.95, b: 0.6, a: 1}
+  graveNeighborFlashDuration: 0.08
+  graveNeighborSquashScale: 1.1
+  graveNeighborSquashTime: 0.05
   composition: []
   heavyDefinition: {fileID: 11400000, guid: 8b08681f2d21d694eb0830305ce6a83e, type: 2}
   heavySpawnRatioView: 0

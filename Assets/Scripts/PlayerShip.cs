@@ -35,7 +35,7 @@ public class PlayerShip : MonoBehaviour
         rigidBody = GetComponent<Rigidbody2D>();
         mainCamera = Camera.main;
 
-        if (rigidBody != null)
+        if(rigidBody != null)
         {
             rigidBody.gravityScale = 0f;
             rigidBody.interpolation = RigidbodyInterpolation2D.Interpolate;
@@ -44,7 +44,7 @@ public class PlayerShip : MonoBehaviour
 
         // Ensure a non-trigger collider exists so wall triggers can detect and we can be pushed.
         Collider2D collider2D = GetComponent<Collider2D>();
-        if (collider2D != null)
+        if(collider2D != null)
         {
             collider2D.isTrigger = false;
         }
@@ -65,29 +65,30 @@ public class PlayerShip : MonoBehaviour
 
     private void Update()
     {
-        if (moveAction == null)
+        if(moveAction == null)
             return;
 
         movementInput = inputEnabled ? moveAction.ReadValue<Vector2>() : Vector2.zero;
-        if (movementInput.sqrMagnitude > 1f)
+        if(inputEnabled && RunModifiers.AutoRunEnabled)
+        {
+            if(movementInput.y < 0.99f)
+                movementInput.y = 1f;
+        }
+        if(movementInput.sqrMagnitude > 1f)
             movementInput = movementInput.normalized;
     }
 
     private void FixedUpdate()
     {
-        if (rigidBody == null || mainCamera == null)
+        if(rigidBody == null || mainCamera == null)
             return;
 
-        if (debugOverlap)
+        if(debugOverlap)
         {
             int or = -1, oc = -1;
             bool overlap = DebugOverlapsActiveBrick(out or, out oc);
-            if (overlap != debugWasOverlapping)
+            if(overlap != debugWasOverlapping)
             {
-                if (overlap)
-                    Debug.Log($"[ShipDebug] Overlap=TRUE cell=({or},{oc})");
-                else
-                    Debug.Log("[ShipDebug] Overlap=FALSE");
                 debugWasOverlapping = overlap;
             }
         }
@@ -128,7 +129,7 @@ public class PlayerShip : MonoBehaviour
     {
         // Prefer child SpriteRenderer if present; fallback to a small default.
         SpriteRenderer spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-        if (spriteRenderer != null)
+        if(spriteRenderer != null)
             shipExtents = spriteRenderer.bounds.extents;
         else
             shipExtents = new Vector2(0.25f, 0.25f);
@@ -136,7 +137,7 @@ public class PlayerShip : MonoBehaviour
 
     private Vector2 ClampToCameraBounds(Vector2 worldPosition)
     {
-        if (mainCamera == null)
+        if(mainCamera == null)
             return worldPosition;
 
         float halfHeight = mainCamera.orthographicSize;
@@ -159,15 +160,15 @@ public class PlayerShip : MonoBehaviour
     {
         hitRow = -1; hitCol = -1;
         var wall = FindAnyObjectByType<WallGrid>();
-        if (wall == null)
+        if(wall == null)
             return false;
 
         // Fetch triangle points from PolygonCollider2D
         var poly = GetComponent<PolygonCollider2D>();
-        if (poly == null || poly.pathCount <= 0)
+        if(poly == null || poly.pathCount <= 0)
             return false;
         var path = poly.GetPath(0);
-        if (path == null || path.Length < 3)
+        if(path == null || path.Length < 3)
             return false;
         // Transform to world
         Vector2 a = transform.TransformPoint(path[0]);
@@ -185,37 +186,37 @@ public class PlayerShip : MonoBehaviour
         float step = Mathf.Max(0.01f, Mathf.Min(cellSize.x, cellSize.y) * 0.25f);
 
         // Quick vertex check first
-        if (wall.TryWorldToCell(a, out hitRow, out hitCol))
+        if(wall.TryWorldToCell(a, out hitRow, out hitCol))
         {
             var br = wall.GetBrickAt(hitRow, hitCol);
-            if (br != null && br.gameObject.activeSelf)
+            if(br != null && br.gameObject.activeSelf)
                 return true;
         }
-        if (wall.TryWorldToCell(b, out hitRow, out hitCol))
+        if(wall.TryWorldToCell(b, out hitRow, out hitCol))
         {
             var br = wall.GetBrickAt(hitRow, hitCol);
-            if (br != null && br.gameObject.activeSelf)
+            if(br != null && br.gameObject.activeSelf)
                 return true;
         }
-        if (wall.TryWorldToCell(c, out hitRow, out hitCol))
+        if(wall.TryWorldToCell(c, out hitRow, out hitCol))
         {
             var br = wall.GetBrickAt(hitRow, hitCol);
-            if (br != null && br.gameObject.activeSelf)
+            if(br != null && br.gameObject.activeSelf)
                 return true;
         }
 
         // Sample interior of triangle
-        for (float y = minY; y <= maxY; y += step)
+        for(float y = minY; y <= maxY; y += step)
         {
-            for (float x = minX; x <= maxX; x += step)
+            for(float x = minX; x <= maxX; x += step)
             {
                 Vector2 p = new Vector2(x, y);
-                if (!PointInTriangle(p, a, b, c))
+                if(!PointInTriangle(p, a, b, c))
                     continue;
-                if (wall.TryWorldToCell(p, out hitRow, out hitCol))
+                if(wall.TryWorldToCell(p, out hitRow, out hitCol))
                 {
                     var brick = wall.GetBrickAt(hitRow, hitCol);
-                    if (brick != null && brick.gameObject.activeSelf)
+                    if(brick != null && brick.gameObject.activeSelf)
                         return true;
                 }
             }

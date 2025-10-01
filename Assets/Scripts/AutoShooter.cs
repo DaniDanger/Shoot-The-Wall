@@ -20,6 +20,9 @@ public class AutoShooter : MonoBehaviour
     public Transform sideRightMuzzle;
     public float sideAngleDegrees = 25f;
     public float sideFireRate = 1f;
+    [Header("Side Cannons (Horizontal)")]
+    [Tooltip("Base fire rate for horizontal side cannons (shots/sec) before upgrades.")]
+    public float sideHoriBaseFireRate = 1f;
     private float nextSideFireTime;
     private float nextSideHoriFireTime;
     private float baseSideFireRate;
@@ -72,7 +75,8 @@ public class AutoShooter : MonoBehaviour
         // Independent horizontal side cannons cadence
         if (RunModifiers.SideCannonsHorizontalEnabled && projectilePool != null)
         {
-            float rate = RunModifiers.SideHoriFireRate > 0f ? RunModifiers.SideHoriFireRate : fireRate;
+            float add = Mathf.Max(0f, RunModifiers.SideHoriFireRate);
+            float rate = Mathf.Max(0f, sideHoriBaseFireRate + add);
             if (rate > 0f && Time.time >= nextSideHoriFireTime)
             {
                 FireSideHoriVolley();
@@ -95,7 +99,8 @@ public class AutoShooter : MonoBehaviour
             nextFireTime = Time.time + 1f / Mathf.Max(0.0001f, fireRate);
             float cadence = sideFireRate > 0f ? sideFireRate : fireRate;
             nextSideFireTime = Time.time + 1f / Mathf.Max(0.0001f, cadence);
-            float rate = RunModifiers.SideHoriFireRate > 0f ? RunModifiers.SideHoriFireRate : fireRate;
+            float add = Mathf.Max(0f, RunModifiers.SideHoriFireRate);
+            float rate = Mathf.Max(0f, sideHoriBaseFireRate + add);
             nextSideHoriFireTime = Time.time + 1f / Mathf.Max(0.0001f, rate);
         }
     }
@@ -168,7 +173,6 @@ public class AutoShooter : MonoBehaviour
                 critL = true;
                 dmgL = Mathf.Max(0f, dmgL * Mathf.Max(1f, RunModifiers.SideCritMultiplier));
             }
-            try { Debug.Log($"[SideFire] L: crit={critL} dmg={dmgL:0.##} chance={RunModifiers.SideCritChance:0.###} mult={RunModifiers.SideCritMultiplier:0.###}"); } catch { }
             pL.Launch(leftPos, leftDir, projectileSpeed, projectileLifetime, dmgL, critL);
         }
 
@@ -184,7 +188,6 @@ public class AutoShooter : MonoBehaviour
                 critR = true;
                 dmgR = Mathf.Max(0f, dmgR * Mathf.Max(1f, RunModifiers.SideCritMultiplier));
             }
-            try { Debug.Log($"[SideFire] R: crit={critR} dmg={dmgR:0.##} chance={RunModifiers.SideCritChance:0.###} mult={RunModifiers.SideCritMultiplier:0.###}"); } catch { }
             pR.Launch(rightPos, rightDir, projectileSpeed, projectileLifetime, dmgR, critR);
         }
 

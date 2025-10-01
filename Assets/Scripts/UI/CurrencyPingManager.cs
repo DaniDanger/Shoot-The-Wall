@@ -19,27 +19,21 @@ public class CurrencyPingManager : MonoBehaviour
     [Header("Behavior")]
     public float pingDuration = 0.45f;
     public float bigPingScale = 1.6f;
-    public float groupWindow = 0.08f;        // seconds
-    public float groupRadius = 64f;          // px in pingsRoot space
-    public bool debugLogs = false;
     [Header("Sizing")]
     public float minUiSize = 5f;             // clamp to keep visible
     public float maxUiSize = 64f;            // optional upper clamp
 
+    [Header("Path")]
+    [Tooltip("Vertical drop in UI pixels before homing.")]
+    public float dropPixels = 30f;
+    [Range(0f, 1f)]
+    [Tooltip("Portion of flight spent in drop phase (0..1).")]
+    public float dropFraction = 0.25f;
+
     [Header("Events")]
     public UnityEvent<int> onPingDelivered;
 
-    private readonly List<Pending> pending = new List<Pending>(256);
-    private readonly List<Pending> buffer = new List<Pending>(256);
     private readonly Stack<GameObject> pool = new Stack<GameObject>(64);
-
-    private struct Pending
-    {
-        public Vector2 uiPos;
-        public float uiSize; // in pingsRoot local units
-        public Color color;
-        public float time;
-    }
 
     public void EnqueueShard(Vector3 worldPosition)
     {
@@ -49,8 +43,8 @@ public class CurrencyPingManager : MonoBehaviour
 
     public void EnqueueShard(Vector3 worldPosition, Color color, float worldSize)
     {
-        if(pingsRoot == null || currencyIcon == null) return;
-        if(worldCamera == null) worldCamera = Camera.main;
+        if (pingsRoot == null || currencyIcon == null) return;
+        if (worldCamera == null) worldCamera = Camera.main;
         Vector3 screenA = worldCamera != null ? worldCamera.WorldToScreenPoint(worldPosition) : (Vector3)Vector2.zero;
         Vector3 screenB = worldCamera != null ? worldCamera.WorldToScreenPoint(worldPosition + (Vector3)(Vector2.right * worldSize)) : screenA;
         Vector2 localA, localB;
@@ -58,67 +52,32 @@ public class CurrencyPingManager : MonoBehaviour
         RectTransformUtility.ScreenPointToLocalPointInRectangle(pingsRoot, screenB, canvas != null ? canvas.worldCamera : null, out localB);
         float uiSize = Mathf.Abs(localB.x - localA.x);
         uiSize = Mathf.Clamp(uiSize, minUiSize, maxUiSize);
-        if(uiSize <= 0f) uiSize = 5f; // fallback px size
-        pending.Add(new Pending { uiPos = localA, uiSize = uiSize, color = color, time = Time.unscaledTime });
+        if (uiSize <= 0f) uiSize = 5f; // fallback px size
+        SpawnPing(localA, color, uiSize, 1);
     }
 
-    private void Update()
+    // Direct API: spawn a single ping with explicit units
+    public void EnqueueUnits(Vector3 worldPosition, Color color, float worldSize, int units)
     {
-        if(pingsRoot == null || currencyIcon == null) return;
-        if(pending.Count == 0) return;
+        if (pingsRoot == null || currencyIcon == null) return;
+        if (worldCamera == null) worldCamera = Camera.main;
+        if (units <= 0) units = 1;
 
-        float now = Time.unscaledTime;
-        buffer.Clear();
-        // Move items older than window into buffer for grouping
-        for(int i = pending.Count - 1; i >= 0; i--)
-        {
-            if(now - pending[i].time >= groupWindow)
-            {
-                buffer.Add(pending[i]);
-                pending.RemoveAt(i);
-            }
-        }
-        if(buffer.Count == 0) return;
+        Vector3 screenA = worldCamera != null ? worldCamera.WorldToScreenPoint(worldPosition) : (Vector3)Vector2.zero;
+        Vector3 screenB = worldCamera != null ? worldCamera.WorldToScreenPoint(worldPosition + (Vector3)(Vector2.right * worldSize)) : screenA;
+        Vector2 localA, localB;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(pingsRoot, screenA, canvas != null ? canvas.worldCamera : null, out localA);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(pingsRoot, screenB, canvas != null ? canvas.worldCamera : null, out localB);
+        float uiSize = Mathf.Abs(localB.x - localA.x);
+        uiSize = Mathf.Clamp(uiSize, minUiSize, maxUiSize);
+        if (uiSize <= 0f) uiSize = 5f;
 
-        // Greedy clustering by proximity
-        var used = new bool[buffer.Count];
-        for(int i = 0; i < buffer.Count; i++)
-        {
-            if(used[i]) continue;
-            Vector2 centroid = buffer[i].uiPos;
-            int count = 1;
-            float sizeAccum = buffer[i].uiSize;
-            Color colorAccum = buffer[i].color;
-            used[i] = true;
-            // gather neighbors
-            for(int j = i + 1; j < buffer.Count; j++)
-            {
-                if(used[j]) continue;
-                if((buffer[j].uiPos - centroid).sqrMagnitude <= groupRadius * groupRadius)
-                {
-                    centroid = (centroid * count + buffer[j].uiPos) / (count + 1);
-                    count++;
-                    sizeAccum += buffer[j].uiSize;
-                    colorAccum += buffer[j].color;
-                    used[j] = true;
-                }
-            }
-
-            int big = count / 10;
-            int rem = count - big * 10;
-            float avgSize = Mathf.Clamp(sizeAccum / Mathf.Max(1, count), minUiSize, maxUiSize);
-            Color avgColor = colorAccum / Mathf.Max(1, count);
-            for(int b = 0; b < big; b++)
-                SpawnPing(centroid, avgColor, Mathf.Clamp(avgSize * bigPingScale, minUiSize, maxUiSize), 10);
-
-            // For remainder, spawn individual pings around centroid with tiny jitter
-            for(int r = 0; r < rem; r++)
-            {
-                Vector2 jitter = Random.insideUnitCircle * 6f;
-                SpawnPing(centroid + jitter, avgColor, avgSize, 1);
-            }
-        }
+        float size = uiSize;
+        SpawnPing(localA, color, size, units);
     }
+
+    // No Update-based grouping
+    private void Update() { }
 
     private void SpawnPing(Vector2 startLocalPos, Color color, float uiSize, int units)
     {
@@ -129,7 +88,7 @@ public class CurrencyPingManager : MonoBehaviour
         rt.anchoredPosition = startLocalPos;
         rt.sizeDelta = new Vector2(uiSize, uiSize);
         Image img = go.GetComponent<Image>();
-        if(img != null)
+        if (img != null)
         {
             color.a = 1f; // ensure fully visible
             img.color = color;
@@ -139,12 +98,12 @@ public class CurrencyPingManager : MonoBehaviour
 
     private GameObject CreatePingGO()
     {
-        if(pingPrefab != null)
+        if (pingPrefab != null)
             return Instantiate(pingPrefab, pingsRoot);
         // fallback: simple white circle
         GameObject go = new GameObject("Ping", typeof(RectTransform), typeof(Image));
         Image img = go.GetComponent<Image>();
-        if(pixelSprite == null)
+        if (pixelSprite == null)
         {
             // create a tiny pixel sprite
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
@@ -161,23 +120,52 @@ public class CurrencyPingManager : MonoBehaviour
         return go;
     }
 
+    // Removed units overlay
+
     private System.Collections.IEnumerator AnimatePing(RectTransform rt, int units)
     {
-        Vector3 startPos = rt.anchoredPosition;
-        Vector3 targetPos = pingsRoot.InverseTransformPoint(currencyIcon.position);
-        float t = 0f;
+        // Start (anchored) position in pingsRoot space
+        Vector2 startPos = rt.anchoredPosition;
+
+        // Robustly compute target anchored position using screen conversion (works across canvas modes)
+        Camera cam = canvas != null ? canvas.worldCamera : null; // null for Screen Space - Overlay
+        Vector2 targetPos;
+        {
+            Vector2 targetLocal;
+            Vector2 targetScreen = RectTransformUtility.WorldToScreenPoint(cam, currencyIcon.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(pingsRoot, targetScreen, cam, out targetLocal);
+            targetPos = targetLocal;
+        }
+
+        // Optional drop phase to improve readability: drop down, then home to icon
         float dur = Mathf.Max(0.05f, pingDuration);
+        float dropT = Mathf.Clamp01(dropFraction);
+        Vector2 dropPos = startPos + new Vector2(0f, -Mathf.Abs(dropPixels));
+
+        float t = 0f;
         Vector3 fixedScale = rt.localScale; // keep constant scale during flight
-        while(t < dur)
+        while (t < dur)
         {
             t += Time.unscaledDeltaTime;
             float u = Mathf.Clamp01(t / dur);
-            float ease = 1f - (1f - u) * (1f - u);
-            rt.anchoredPosition = Vector3.LerpUnclamped(startPos, targetPos, ease);
+            Vector2 pos;
+            if (dropT > 0f && u < dropT)
+            {
+                float v = u / dropT;
+                float ease1 = 1f - (1f - v) * (1f - v);
+                pos = Vector2.LerpUnclamped(startPos, dropPos, ease1);
+            }
+            else
+            {
+                float v = dropT < 1f ? (u - dropT) / (1f - dropT) : 1f;
+                float ease2 = 1f - (1f - v) * (1f - v);
+                pos = Vector2.LerpUnclamped(dropPos, targetPos, ease2);
+            }
+            rt.anchoredPosition = pos;
             rt.localScale = fixedScale;
             yield return null;
         }
-        if(onPingDelivered != null)
+        if (onPingDelivered != null)
             onPingDelivered.Invoke(Mathf.Max(1, units));
         rt.gameObject.SetActive(false);
         pool.Push(rt.gameObject);

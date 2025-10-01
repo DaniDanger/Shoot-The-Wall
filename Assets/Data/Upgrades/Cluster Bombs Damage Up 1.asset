@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Cluster Bombs Damage Up 1
   m_EditorClassIdentifier: 
   id: clusterbombsdamageup1
-  index: 3
+  index: 4
   displayName: Cluster Bombs Damage Up 1
   icon: {fileID: 21300000, guid: 585d5ab0f38d32d46b44a829442f3457, type: 3}
   maxLevel: 10
@@ -28,6 +28,8 @@ MonoBehaviour:
   heavySpawnChanceAdd: 0
   wallDescendDampen: 0
   overflowCarryAdd: 0
+  enablesOverflowUncapped: 0
+  shardGainPercentAdd: 0
   enablesSideCannons: 0
   sideCannonBaseDamage: 0
   sideCannonDamageAdd: 0
@@ -56,9 +58,16 @@ MonoBehaviour:
   graveBombDamageAdd: 0
   graveBombDepthAdd: 0
   effectTextOverride: 
+  stageClearBonusBase: 0
+  stageClearBonusPerLevel: 0
+  passiveIncomeBasePerSecond: 0
+  passiveIncomePerLevel: 0
+  enablesPassiveBaseMultiplier: 0
+  enablesAutoRunToggle: 0
   layoutAnchor: {fileID: 0}
   layoutDir: 8
   layoutOffset: {x: 25, y: -25}
+  minClearedWaveIndex: -1
   prerequisites:
   - upgrade: {fileID: 11400000, guid: 300851c770f6d9645a12a6ea137fe305, type: 2}
     minLevel: 1

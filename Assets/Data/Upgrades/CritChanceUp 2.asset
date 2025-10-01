@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: CritChanceUp 2
   m_EditorClassIdentifier: 
   id: critchanceup2
-  index: 6
+  index: 7
   displayName: Crit Chance Up 2
   icon: {fileID: 21300000, guid: 853c5c9f4d543db469de0bf829b67474, type: 3}
   maxLevel: 10
@@ -28,6 +28,8 @@ MonoBehaviour:
   heavySpawnChanceAdd: 0
   wallDescendDampen: 0
   overflowCarryAdd: 0
+  enablesOverflowUncapped: 0
+  shardGainPercentAdd: 0
   enablesSideCannons: 0
   sideCannonBaseDamage: 0
   sideCannonDamageAdd: 0
@@ -56,9 +58,16 @@ MonoBehaviour:
   graveBombDamageAdd: 0
   graveBombDepthAdd: 0
   effectTextOverride: 
+  stageClearBonusBase: 0
+  stageClearBonusPerLevel: 0
+  passiveIncomeBasePerSecond: 0
+  passiveIncomePerLevel: 0
+  enablesPassiveBaseMultiplier: 0
+  enablesAutoRunToggle: 0
   layoutAnchor: {fileID: 0}
   layoutDir: 4
   layoutOffset: {x: -15, y: 0}
+  minClearedWaveIndex: -1
   prerequisites:
   - upgrade: {fileID: 11400000, guid: a86784b75cf856145a0bc090fab58a49, type: 2}
     minLevel: 10

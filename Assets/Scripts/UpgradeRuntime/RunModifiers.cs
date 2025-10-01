@@ -28,6 +28,11 @@ public static class RunModifiers
     public static float SideCritChance = 0f;
     public static float SideCritMultiplier = 1f;
 
+    // Grave bomb (spawn a bomb brick next run at death location)
+    public static bool GraveBombEnabled = false;
+    public static float GraveBombDamage = 1f;
+    public static int GraveBombDepth = 1; // 1 = 8-neighbor ring
+
     // Horizontal side cannons (fire straight left/right)
     public static bool SideCannonsHorizontalEnabled = false;
     public static int SideHoriDamage = 0;
@@ -36,10 +41,32 @@ public static class RunModifiers
     public static float SideHoriCritChance = 0f;
     public static float SideHoriCritMultiplier = 1f;
 
-    // Grave bomb (spawn a bomb brick next run at death location)
-    public static bool GraveBombEnabled = false;
-    public static float GraveBombDamage = 1f;
-    public static int GraveBombDepth = 1; // 1 = 8-neighbor ring
+    // Auto Run (Auto-Pilot)
+    public static bool AutoRunUnlocked = false;
+
+    private const string AutoRunEnabledKey = "AutoRunEnabled";
+    public static bool AutoRunEnabled
+    {
+        get { return PlayerPrefs.GetInt(AutoRunEnabledKey, 0) == 1; }
+        set { PlayerPrefs.SetInt(AutoRunEnabledKey, value ? 1 : 0); PlayerPrefs.Save(); }
+    }
+
+    // Passive income (currency per second during runs)
+    public static float PassiveIncomePerSecond = 0f;
+
+    // Shard amplifier (per-run)
+    public static float ShardGainPercent = 0f;
+    public static float ShardGainCarry = 0f;
+
+    // Stage selector + Re-run on clear
+    public static bool StageSelectorUnlocked = false;
+
+    private const string ReRunOnClearKey = "ReRunOnClearEnabled";
+    public static bool ReRunOnClearEnabled
+    {
+        get { return PlayerPrefs.GetInt(ReRunOnClearKey, 0) == 1; }
+        set { PlayerPrefs.SetInt(ReRunOnClearKey, value ? 1 : 0); PlayerPrefs.Save(); }
+    }
 }
 
 

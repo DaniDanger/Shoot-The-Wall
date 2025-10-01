@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1ee5323082d7fa4984ea3cd2378b261, type: 3}
+  m_Name: OverflowUncapped
+  m_EditorClassIdentifier: 
+  id: overflowuncapped
+  index: 22
+  displayName: Overflow Uncapped
+  icon: {fileID: 0}
+  maxLevel: 1
+  baseCost: 3000
+  stepPerLevel: 0
+  damageAdd: 0
+  fireRateAdd: 0
+  critChanceAdd: 0
+  critMultiplierAdd: 0
+  redRiseDampen: 0
+  projectilesAdd: 0
+  heavySpawnChanceAdd: 0
+  wallDescendDampen: 0
+  overflowCarryAdd: 0
+  enablesOverflowUncapped: 1
+  shardGainPercentAdd: 0
+  enablesSideCannons: 0
+  sideCannonBaseDamage: 0
+  sideCannonDamageAdd: 0
+  sideCannonFireRateAdd: 0
+  enablesSideCrits: 0
+  sideCritChanceAdd: 0
+  sideCritMultiplierAdd: 0
+  enablesSideCannonsHorizontal: 0
+  horizSideCannonBaseDamage: 0
+  horizSideCannonDamageAdd: 0
+  horizSideCannonFireRateAdd: 0
+  enablesSideCritsHorizontal: 0
+  horizSideCritChanceAdd: 0
+  horizSideCritMultiplierAdd: 0
+  enablesPassThroughCluster: 0
+  clusterShardCountAdd: 0
+  clusterShardDamageAdd: 0
+  clusterShardSpeedAdd: 0
+  clusterShardLifetimeAdd: 0
+  clusterAngleAdd: 0
+  enablesKillExplosionSides: 0
+  killExplosionDamageAdd: 0
+  killExplosionExtraDepthAdd: 0
+  enablesGraveBomb: 0
+  graveBombBaseDamage: 40
+  graveBombDamageAdd: 0
+  graveBombDepthAdd: 0
+  effectTextOverride: 
+  stageClearBonusBase: 0
+  stageClearBonusPerLevel: 0
+  passiveIncomeBasePerSecond: 0
+  passiveIncomePerLevel: 0
+  enablesPassiveBaseMultiplier: 0
+  enablesAutoRunToggle: 0
+  layoutAnchor: {fileID: 11400000, guid: a0fdbf5999f45074aa699dc1d6288606, type: 2}
+  layoutDir: 3
+  layoutOffset: {x: 0, y: 0}
+  minClearedWaveIndex: -1
+  prerequisites:
+  - upgrade: {fileID: 11400000, guid: a0fdbf5999f45074aa699dc1d6288606, type: 2}
+    minLevel: 3

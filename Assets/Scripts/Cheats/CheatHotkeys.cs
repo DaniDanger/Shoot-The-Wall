@@ -9,13 +9,12 @@ public class CheatHotkeys : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current == null) return;
-        if (Keyboard.current.f1Key.wasPressedThisFrame)
+        if(Keyboard.current == null) return;
+        if(Keyboard.current.f1Key.wasPressedThisFrame)
         {
             CurrencyStore.AddToTotal(Mathf.Max(0, grantAmount));
-            Debug.Log($"[Cheat] Granted {grantAmount} currency. Total now {CurrencyStore.TotalCurrency}");
             var hud = FindAnyObjectByType<HudController>();
-            if (hud != null) hud.RefreshCurrencyLabel();
+            if(hud != null) hud.RefreshCurrencyLabel();
         }
     }
 }

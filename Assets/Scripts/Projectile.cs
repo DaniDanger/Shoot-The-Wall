@@ -160,7 +160,7 @@ public class Projectile : MonoBehaviour
                     float overkill = Mathf.Max(0f, dmg - Mathf.Max(0f, before));
                     if (overkill > 0f)
                     {
-                        float carry = Mathf.Max(0f, overkill * Mathf.Clamp01(RunModifiers.OverflowCarryPercent));
+                        float carry = Mathf.Max(0f, overkill * Mathf.Max(0f, RunModifiers.OverflowCarryPercent));
                         if (carry > 0f)
                         {
                             Brick above = wall.FindBrickAboveImmediate(hitBrick);
@@ -170,19 +170,31 @@ public class Projectile : MonoBehaviour
                     }
                 }
 
-                var fx = shardFx != null ? shardFx : (sCachedShards != null ? sCachedShards : (sCachedShards = FindAnyObjectByType<HitFxShards>()));
-                shardFx = fx;
+                // Compute emitted shard count and log hit info (always)
+                int emittedShards2 = after > 0f ? Mathf.Max(1, Mathf.RoundToInt(dmg)) : Mathf.Max(1, Mathf.RoundToInt(hitBrick.maxHp));
+                emittedShards2 = Mathf.Max(1, emittedShards2);
+                try { Debug.Log($"[BrickHit] dmg={dmg:0.##} emittedShards={emittedShards2}"); } catch { }
+
+                if (shardFx == null)
+                    shardFx = sCachedShards;
                 if (shardFx != null)
                 {
-                    int count = after > 0f ? Mathf.Max(1, Mathf.RoundToInt(dmg)) : Mathf.Max(1, Mathf.RoundToInt(hitBrick.maxHp));
-                    shardFx.EmitShards(impactPoint, direction, count, preColor, wasCrit);
+                    EmitBundledShards(shardFx, impactPoint, direction, preColor, wasCrit, emittedShards2);
                 }
 
+                bool wasKill = after <= 0f && before > 0f;
                 var shaker = CameraShaker.Instance;
                 if (shaker != null)
                 {
-                    bool wasKill = after <= 0f && before > 0f;
                     shaker.AddHitShake(wasCrit, wasKill);
+                }
+                var am = AudioManager.Instance;
+                if (am != null)
+                {
+                    if (wasKill)
+                        am.PlaySfx(AudioManager.SfxId.BrickKill, 1f, 0.02f);
+                    //else
+                    //am.PlaySfx(AudioManager.SfxId.BrickHit, 1f, 0.04f);
                 }
 
                 ReturnToPool();
@@ -235,85 +247,22 @@ public class Projectile : MonoBehaviour
         prevPos = transform.position;
     }
 
+    private static void EmitBundledShards(HitFxShards fx, Vector3 impactPoint, Vector2 direction, Color preColor, bool wasCrit, int emittedShards)
+    {
+        int big = emittedShards / 10;
+        int small = emittedShards % 10;
+        if (big > 0)
+            fx.EmitCustomShards(impactPoint, direction, big, 10, Mathf.Max(0.01f, fx.bigShardSizeMultiplier), preColor, wasCrit);
+        if (small > 0)
+            fx.EmitCustomShards(impactPoint, direction, small, 1, 1f, preColor, wasCrit);
+    }
+
     public void ReturnToPool()
     {
         if (ownerPool != null)
             ownerPool.Return(this);
         else
             gameObject.SetActive(false);
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (clusterSequenceActive)
-            return;
-        if (hasHit)
-            return;
-        // Handle damage here so bricks can remain solid (non-trigger)
-        Brick brick = other.GetComponent<Brick>();
-        if (brick != null)
-        {
-            // Grave bomb detonation on hit (guard double-trigger)
-            var wallGrid = brick.GetComponentInParent<WallGrid>();
-            var graveMarker = brick.GetComponent<GraveBombMarker>();
-            if (wallGrid != null && graveMarker != null && !graveMarker.isDetonating)
-            {
-                wallGrid.DetonateGrave(brick);
-                // continue with normal damage as well (design choice: can be adjusted)
-            }
-            // Guard immediately to avoid duplicate enters in the same frame
-            hasHit = true;
-            // Use brick's spawn tint for shard color (captured pre-damage)
-            Color preColor = brick != null ? brick.GetSpawnTint() : Color.white;
-            float dmg = Mathf.Max(0f, damage);
-            float before = brick.CurrentHp;
-            brick.TakeDamage(dmg);
-            float after = brick.CurrentHp;
-
-            // Overflow: if we overkilled this brick, carry a portion to the brick directly above
-            if (RunModifiers.OverflowCarryPercent > 0f && after <= 0f && before > 0f)
-            {
-                float overkill = Mathf.Max(0f, dmg - Mathf.Max(0f, before));
-                if (overkill > 0)
-                {
-                    float carry = Mathf.Max(0f, overkill * Mathf.Clamp01(RunModifiers.OverflowCarryPercent));
-                    if (carry > 0f)
-                    {
-                        // Find the wall containing this brick
-                        WallGrid wall2 = brick.GetComponentInParent<WallGrid>();
-                        if (wall2 != null)
-                        {
-                            Brick above = wall2.FindBrickAboveImmediate(brick);
-                            if (above != null)
-                            {
-                                above.TakeDamage(carry);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Emit shards FX
-            var fx = shardFx != null ? shardFx : (sCachedShards != null ? sCachedShards : (sCachedShards = FindAnyObjectByType<HitFxShards>()));
-            shardFx = fx;
-            if (shardFx != null)
-            {
-                int count = after > 0f ? Mathf.Max(1, Mathf.RoundToInt(dmg)) : Mathf.Max(1, Mathf.RoundToInt(brick.maxHp));
-                count = Mathf.Max(1, count);
-                shardFx.EmitShards(transform.position, direction, count, preColor, wasCrit);
-            }
-
-            // Subtle camera shake on hit
-            var shaker = CameraShaker.Instance;
-            if (shaker != null)
-            {
-                bool wasKill = after <= 0f && before > 0f;
-                shaker.AddHitShake(wasCrit, wasKill);
-            }
-
-            ReturnToPool();
-            return;
-        }
     }
 
     public void BeginClusterSplit(int shardCount, float shardDamage, float shardSpeed, float shardLifetime, float spreadDegrees)

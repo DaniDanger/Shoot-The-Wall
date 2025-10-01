@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Wall Speed Down
   m_EditorClassIdentifier: 
   id: wallspeeddown
-  index: 27
+  index: 37
   displayName: Wall Speed Down
   icon: {fileID: 21300000, guid: cd214a6126318884ca9122e5063e599b, type: 3}
   maxLevel: 10
-  baseCost: 200
-  stepPerLevel: 200
+  baseCost: 50
+  stepPerLevel: 50
   damageAdd: 0
   fireRateAdd: 0
   critChanceAdd: 0
@@ -28,6 +28,8 @@ MonoBehaviour:
   heavySpawnChanceAdd: 0
   wallDescendDampen: 0.02
   overflowCarryAdd: 0
+  enablesOverflowUncapped: 0
+  shardGainPercentAdd: 0
   enablesSideCannons: 0
   sideCannonBaseDamage: 0
   sideCannonDamageAdd: 0
@@ -56,9 +58,16 @@ MonoBehaviour:
   graveBombDamageAdd: 0
   graveBombDepthAdd: 0
   effectTextOverride: 
+  stageClearBonusBase: 0
+  stageClearBonusPerLevel: 0
+  passiveIncomeBasePerSecond: 0
+  passiveIncomePerLevel: 0
+  enablesPassiveBaseMultiplier: 0
+  enablesAutoRunToggle: 0
   layoutAnchor: {fileID: 0}
   layoutDir: 3
   layoutOffset: {x: -100, y: 0}
+  minClearedWaveIndex: -1
   prerequisites:
   - upgrade: {fileID: 11400000, guid: 28384477d19d19b4b956a0c9eb2722f2, type: 2}
     minLevel: 1

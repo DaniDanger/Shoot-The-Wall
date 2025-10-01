@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SideCannons2 Damage Up
   m_EditorClassIdentifier: 
   id: sidecannons2damageup
-  index: 26
+  index: 33
   displayName: Side Cannons 2 Damage Up
   icon: {fileID: 21300000, guid: 5b5d064674f1bda449d14c22aa5bbeb9, type: 3}
   maxLevel: 10
@@ -28,6 +28,8 @@ MonoBehaviour:
   heavySpawnChanceAdd: 0
   wallDescendDampen: 0
   overflowCarryAdd: 0
+  enablesOverflowUncapped: 0
+  shardGainPercentAdd: 0
   enablesSideCannons: 0
   sideCannonBaseDamage: 0
   sideCannonDamageAdd: 0
@@ -56,9 +58,16 @@ MonoBehaviour:
   graveBombDamageAdd: 0
   graveBombDepthAdd: 0
   effectTextOverride: 
+  stageClearBonusBase: 0
+  stageClearBonusPerLevel: 0
+  passiveIncomeBasePerSecond: 0
+  passiveIncomePerLevel: 0
+  enablesPassiveBaseMultiplier: 0
+  enablesAutoRunToggle: 0
   layoutAnchor: {fileID: 0}
   layoutDir: 3
   layoutOffset: {x: -50, y: 0}
+  minClearedWaveIndex: -1
   prerequisites:
   - upgrade: {fileID: 11400000, guid: 5e8927bebcd20454d8dde4c95df890fc, type: 2}
     minLevel: 1

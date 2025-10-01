@@ -52,6 +52,9 @@ public class WallGrid : MonoBehaviour
     [Tooltip("LayerMask to assign to the pass-through trigger object (use a single layer).")]
     public LayerMask passThroughZoneLayer;
 
+    [Tooltip("Color tint for the visible pass-through zone overlay.")]
+    public Color passThroughZoneColor = new Color(0.5f, 1f, 0.5f, 0.15f);
+
     [Header("Grave Bomb")]
     [Tooltip("Tint for grave bomb bricks.")]
     public Color graveBombTint = new Color(0.8f, 0.8f, 0.2f, 1f);
@@ -95,8 +98,7 @@ public class WallGrid : MonoBehaviour
     private float cachedSpeed;
     private bool isInitialized;
     private PassThroughZone passZone;
-    // Frame-to-frame wall movement in world space
-    private Vector3 lastDeltaWorld;
+    // Frame-to-frame wall movement in world space (unused)
     // Cached geometry for logic-level collision and mapping
     private Vector2 cachedCellSize; // world units
     private Vector2 cachedStep;     // cell + spacing in world units
@@ -135,10 +137,7 @@ public class WallGrid : MonoBehaviour
 
     public bool IsInitialized => isInitialized;
 
-    public float GetTopY()
-    {
-        return transform.position.y + GetBoundsHeight();
-    }
+    // Removed unused GetTopY()
 
     private void Awake()
     {
@@ -171,7 +170,7 @@ public class WallGrid : MonoBehaviour
         Vector3 pos = transform.position;
         pos.y = startY;
         transform.position = pos;
-        lastDeltaWorld = Vector3.zero;
+        // removed lastDeltaWorld
     }
 
     private void FixedUpdate()
@@ -184,14 +183,11 @@ public class WallGrid : MonoBehaviour
             Vector2 before = rigidBody.position;
             Vector2 next = before + Vector2.down * (descendSpeed * Time.fixedDeltaTime);
             rigidBody.MovePosition(next);
-            lastDeltaWorld = new Vector3(next.x - before.x, next.y - before.y, 0f);
         }
         else
         {
-            Vector3 before = transform.position;
-            Vector3 pos = before + Vector3.down * (descendSpeed * Time.fixedDeltaTime);
+            Vector3 pos = transform.position + Vector3.down * (descendSpeed * Time.fixedDeltaTime);
             transform.position = pos;
-            lastDeltaWorld = pos - before;
         }
 
         // Periodically update which bricks renderers are enabled based on camera band
@@ -313,8 +309,11 @@ public class WallGrid : MonoBehaviour
         }
         aliveCount = totalBricks;
         // Debug: report heavy composition for this grid
-        float pct = totalBricks > 0 ? (heavyCount * 100f / totalBricks) : 0f;
-        Debug.Log($"[WallGrid] Heavy bricks {heavyCount}/{totalBricks} ({pct:0.0}%), target={ratio * 100f:0.0}%");
+        if (Debug.isDebugBuild)
+        {
+            float pct = totalBricks > 0 ? (heavyCount * 100f / totalBricks) : 0f;
+            Debug.Log($"[WallGrid] Heavy bricks {heavyCount}/{totalBricks} ({pct:0.0}%), target={ratio * 100f:0.0}%");
+        }
         isInitialized = true;
 
         // Configure pass-through zone width/height and position at top
@@ -323,15 +322,25 @@ public class WallGrid : MonoBehaviour
             BoxCollider2D bc = passZone.GetComponent<BoxCollider2D>();
             if (bc != null)
             {
-                // Use a thicker trigger to ensure fast projectiles reliably enter the zone each physics step
-                bc.size = new Vector2(gridWidth, 1.0f);
-                // Position local at top + small offset (passOffsetY)
+                // Adjusted height to ensure player fully exits before clear
+                float zoneHeight = Mathf.Max(cellSize.y * 1.2f, 0.6f);
+                bc.size = new Vector2(gridWidth, zoneHeight);
+
+                // Position local at top + offset; exit at top edge implies full pass
                 float topLocalY = origin.y + (rows - 1) * (cellSize.y + spacing.y) + cellSize.y * 0.5f;
-                passZone.transform.localPosition = new Vector3(origin.x + gridWidth * 0.5f - cellSize.x * 0.5f, topLocalY + passOffsetY, 0f);
-                // Ensure zone sits above bricks in world space so the player's collider enters it
+                float zoneCenterY = topLocalY + passOffsetY + zoneHeight * 0.5f;
+                passZone.transform.localPosition = new Vector3(
+                    origin.x + gridWidth * 0.5f - cellSize.x * 0.5f,
+                    zoneCenterY,
+                    0f);
+
+                // Ensure zone sits above bricks so the player's collider traverses it
                 Vector3 world = transform.TransformPoint(passZone.transform.localPosition);
-                world.z = -0.1f; // slightly in front
+                world.z = -0.1f;
                 passZone.transform.position = world;
+
+                // Visual: create/update sprite to match collider and tint color
+                passZone.SetupVisual(bc.size, passThroughZoneColor);
             }
             passZone.ResetZone();
 
@@ -403,337 +412,20 @@ public class WallGrid : MonoBehaviour
     public Vector2 GetCellSize() => cachedCellSize;
     public Vector2 GetStepSize() => cachedStep;
 
-    // Computes minimal translation vector (world space) to separate the given AABB from any overlapping alive bricks.
-    // Returns true and sets mtvWorld when overlap exists; otherwise false and mtvWorld = Vector2.zero.
-    public bool TryResolveAabb(Vector2 centerWorld, Vector2 extentsWorld, out Vector2 mtvWorld)
+    // Ensure pass-through zone collider is re-enabled between runs
+    public void ResetPassThroughZoneCollider()
     {
-        mtvWorld = Vector2.zero;
-        if (!isInitialized) return false;
-
-        Vector3 localCenter3 = transform.InverseTransformPoint(new Vector3(centerWorld.x, centerWorld.y, 0f));
-        Vector2 localCenter = new Vector2(localCenter3.x, localCenter3.y);
-        // Convert world extents to local to match grid units
-        float ex = Mathf.Abs(transform.InverseTransformVector(new Vector3(extentsWorld.x, 0f, 0f)).x);
-        float ey = Mathf.Abs(transform.InverseTransformVector(new Vector3(0f, extentsWorld.y, 0f)).y);
-        float minX = localCenter.x - ex;
-        float maxX = localCenter.x + ex;
-        float minY = localCenter.y - ey;
-        float maxY = localCenter.y + ey;
-
-        if (cachedStep.x <= 0.0001f || cachedStep.y <= 0.0001f) return false;
-
-        float idxMinX = (minX - cachedOriginLocal.x) / cachedStep.x;
-        float idxMaxX = (maxX - cachedOriginLocal.x) / cachedStep.x;
-        float idxMinY = (minY - cachedOriginLocal.y) / cachedStep.y;
-        float idxMaxY = (maxY - cachedOriginLocal.y) / cachedStep.y;
-
-        int cMin = Mathf.FloorToInt(idxMinX) - 1;
-        int cMax = Mathf.CeilToInt(idxMaxX) + 1;
-        int rMin = Mathf.FloorToInt(idxMinY) - 1;
-        int rMax = Mathf.CeilToInt(idxMaxY) + 1;
-
-        cMin = Mathf.Clamp(cMin, 0, columns - 1);
-        cMax = Mathf.Clamp(cMax, 0, columns - 1);
-        rMin = Mathf.Clamp(rMin, 0, rows - 1);
-        rMax = Mathf.Clamp(rMax, 0, rows - 1);
-
-        float halfW = cachedCellSize.x * 0.5f;
-        float halfH = cachedCellSize.y * 0.5f;
-        const float skin = 0.003f; // small outward bias to avoid visible nose penetration
-
-        bool any = false;
-        float bestMag = float.MaxValue;
-        Vector2 bestLocal = Vector2.zero;
-
-        for (int r = rMin; r <= rMax; r++)
-        {
-            float cy = cachedOriginLocal.y + r * cachedStep.y;
-            for (int c = cMin; c <= cMax; c++)
-            {
-                Brick b = brickGrid[r, c];
-                if (b == null || !b.gameObject.activeSelf) continue;
-                float cx = cachedOriginLocal.x + c * cachedStep.x;
-
-                // Overlap test
-                float dx = localCenter.x - cx;
-                float dy = localCenter.y - cy;
-                float ox = (halfW + ex) - Mathf.Abs(dx);
-                if (ox <= 0f) continue;
-                float oy = (halfH + ey) - Mathf.Abs(dy);
-                if (oy <= 0f) continue;
-
-                // MTV along axis of least penetration
-                Vector2 sepLocal;
-                if (ox < oy)
-                {
-                    float sx = dx < 0f ? -(ox + skin) : (ox + skin); // push away along x with skin
-                    sepLocal = new Vector2(sx, 0f);
-                }
-                else
-                {
-                    float sy = dy < 0f ? -(oy + skin) : (oy + skin); // push away along y with skin
-                    sepLocal = new Vector2(0f, sy);
-                }
-
-                float mag = sepLocal.sqrMagnitude;
-                if (mag < bestMag)
-                {
-                    bestMag = mag;
-                    bestLocal = sepLocal;
-                    any = true;
-                }
-            }
-        }
-
-        if (!any) return false;
-        Vector3 worldVec3 = transform.TransformVector(new Vector3(bestLocal.x, bestLocal.y, 0f));
-        mtvWorld = new Vector2(worldVec3.x, worldVec3.y);
-        return true;
+        if (passZone != null)
+            passZone.ResetZone();
     }
 
+    // Removed unused TryResolveAabb()
 
+    // Removed unused TryResolveCirclePushOut()
 
-    // Push-out for circle at rest: minimal separation vector to resolve overlap with any alive tile (world space)
-    public bool TryResolveCirclePushOut(Vector2 centerWorld, float radiusWorld, out Vector2 mtvWorld)
-    {
-        mtvWorld = Vector2.zero;
-        if (!isInitialized) return false;
-        Vector3 localCenter3 = transform.InverseTransformPoint(new Vector3(centerWorld.x, centerWorld.y, 0f));
-        float rLocalX = Mathf.Abs(transform.InverseTransformVector(new Vector3(radiusWorld, 0f, 0f)).x);
-        float rLocalY = Mathf.Abs(transform.InverseTransformVector(new Vector3(0f, radiusWorld, 0f)).y);
-        float rLocal = Mathf.Max(rLocalX, rLocalY);
-        float x0 = localCenter3.x;
-        float y0 = localCenter3.y;
+    // Removed unused ComputeAllowedDeltaXAabb()
 
-        float halfW = cachedCellSize.x * 0.5f;
-        float halfH = cachedCellSize.y * 0.5f;
-
-        float xMin = x0 - rLocal - cachedCellSize.x;
-        float xMax = x0 + rLocal + cachedCellSize.x;
-        float yMin = y0 - rLocal - cachedCellSize.y;
-        float yMax = y0 + rLocal + cachedCellSize.y;
-        int cMin = Mathf.Clamp(Mathf.FloorToInt((xMin - cachedOriginLocal.x) / cachedStep.x) - 1, 0, columns - 1);
-        int cMax = Mathf.Clamp(Mathf.CeilToInt((xMax - cachedOriginLocal.x) / cachedStep.x) + 1, 0, columns - 1);
-        int rMin = Mathf.Clamp(Mathf.FloorToInt((yMin - cachedOriginLocal.y) / cachedStep.y) - 1, 0, rows - 1);
-        int rMax = Mathf.Clamp(Mathf.CeilToInt((yMax - cachedOriginLocal.y) / cachedStep.y) + 1, 0, rows - 1);
-
-        bool any = false;
-        float bestMag = float.MaxValue;
-        Vector2 bestLocal = Vector2.zero;
-        // small skin
-        float pixelWorld = GetCameraHeight() / Mathf.Max(1, Screen.height);
-        float skinWorld = Mathf.Max(0.0005f, pixelWorld * 0.5f);
-        float skinLocal = Mathf.Abs(transform.InverseTransformVector(new Vector3(skinWorld, 0f, 0f)).x);
-
-        for (int r = rMin; r <= rMax; r++)
-        {
-            float cy = cachedOriginLocal.y + r * cachedStep.y;
-            for (int c = cMin; c <= cMax; c++)
-            {
-                Brick b = brickGrid[r, c];
-                if (b == null || !b.gameObject.activeSelf) continue;
-                float cx = cachedOriginLocal.x + c * cachedStep.x;
-
-                float dx = x0 - cx;
-                float dy = y0 - cy;
-                float ox = (halfW + rLocal) - Mathf.Abs(dx);
-                float oy = (halfH + rLocal) - Mathf.Abs(dy);
-                if (ox <= 0f || oy <= 0f) continue;
-
-                Vector2 sepLocal;
-                if (ox < oy)
-                {
-                    float sx = dx < 0f ? -(ox + skinLocal) : (ox + skinLocal);
-                    sepLocal = new Vector2(sx, 0f);
-                }
-                else
-                {
-                    float sy = dy < 0f ? -(oy + skinLocal) : (oy + skinLocal);
-                    sepLocal = new Vector2(0f, sy);
-                }
-
-                float mag = sepLocal.sqrMagnitude;
-                if (mag < bestMag)
-                {
-                    bestMag = mag;
-                    bestLocal = sepLocal;
-                    any = true;
-                }
-            }
-        }
-
-        if (!any) return false;
-        Vector3 worldVec3 = transform.TransformVector(new Vector3(bestLocal.x, bestLocal.y, 0f));
-        mtvWorld = new Vector2(worldVec3.x, worldVec3.y);
-        return true;
-    }
-
-    // Axis sweep using an AABB (band of rows/columns) – equivalent to multiple parallel rays.
-    public float ComputeAllowedDeltaXAabb(Vector2 centerWorld, Vector2 halfExtentsWorld, float desiredDxWorld)
-    {
-        if (!isInitialized || Mathf.Approximately(desiredDxWorld, 0f)) return desiredDxWorld;
-        // World -> local
-        Vector3 localC3 = transform.InverseTransformPoint(new Vector3(centerWorld.x, centerWorld.y, 0f));
-        Vector2 halfLocal = new Vector2(
-            Mathf.Abs(transform.InverseTransformVector(new Vector3(halfExtentsWorld.x, 0f, 0f)).x),
-            Mathf.Abs(transform.InverseTransformVector(new Vector3(0f, halfExtentsWorld.y, 0f)).y)
-        );
-        float dxLocal = transform.InverseTransformVector(new Vector3(desiredDxWorld, 0f, 0f)).x;
-        float x0 = localC3.x;
-        float y0 = localC3.y;
-
-        float halfW = cachedCellSize.x * 0.5f;
-        float halfH = cachedCellSize.y * 0.5f;
-
-        // Rows overlapped by the AABB
-        float yMin = y0 - halfLocal.y;
-        float yMax = y0 + halfLocal.y;
-        int rMin = Mathf.Clamp(Mathf.FloorToInt((yMin - cachedOriginLocal.y) / cachedStep.y) - 1, 0, rows - 1);
-        int rMax = Mathf.Clamp(Mathf.CeilToInt((yMax - cachedOriginLocal.y) / cachedStep.y) + 1, 0, rows - 1);
-
-        float faceStart = x0 + (dxLocal > 0f ? halfLocal.x : -halfLocal.x);
-        float faceEnd = faceStart + dxLocal;
-        int cStart = Mathf.Clamp(Mathf.FloorToInt((faceStart - cachedOriginLocal.x) / cachedStep.x), 0, columns - 1);
-        int cEnd = Mathf.Clamp(Mathf.FloorToInt((faceEnd - cachedOriginLocal.x) / cachedStep.x), 0, columns - 1);
-
-        float allowedLocal = dxLocal;
-        if (dxLocal > 0f)
-        {
-            for (int c = cStart + 1; c <= Mathf.Max(cStart, cEnd) + 1 && c < columns; c++)
-            {
-                float cx = cachedOriginLocal.x + c * cachedStep.x;
-                float leftFace = cx - halfW;
-                // If the moving AABB right face would cross this leftFace, check rows
-                for (int r = rMin; r <= rMax; r++)
-                {
-                    Brick b = brickGrid[r, c];
-                    if (b == null || !b.gameObject.activeSelf) continue;
-                    float cy = cachedOriginLocal.y + r * cachedStep.y;
-                    float top = cy + halfH;
-                    float bottom = cy - halfH;
-                    if (yMax < bottom || yMin > top) continue;
-                    float cand = (leftFace - (x0 + halfLocal.x));
-                    if (cand >= 0f && cand < allowedLocal)
-                        allowedLocal = cand;
-                    break;
-                }
-                if (allowedLocal <= 0f) break;
-            }
-        }
-        else
-        {
-            for (int c = cStart - 1; c >= Mathf.Min(cStart, cEnd) - 1 && c >= 0; c--)
-            {
-                float cx = cachedOriginLocal.x + c * cachedStep.x;
-                float rightFace = cx + halfW;
-                for (int r = rMin; r <= rMax; r++)
-                {
-                    Brick b = brickGrid[r, c];
-                    if (b == null || !b.gameObject.activeSelf) continue;
-                    float cy = cachedOriginLocal.y + r * cachedStep.y;
-                    float top = cy + halfH;
-                    float bottom = cy - halfH;
-                    if (yMax < bottom || yMin > top) continue;
-                    float cand = (rightFace - (x0 - halfLocal.x)); // negative
-                    if (cand <= 0f && cand > allowedLocal)
-                        allowedLocal = cand;
-                    break;
-                }
-                if (allowedLocal >= 0f) break;
-            }
-        }
-
-        float pixelWorld = GetCameraHeight() / Mathf.Max(1, Screen.height);
-        float skinWorld = Mathf.Max(0.0005f, pixelWorld * 0.75f);
-        float allowedWorld = transform.TransformVector(new Vector3(allowedLocal, 0f, 0f)).x;
-        if (dxLocal > 0f) allowedWorld = Mathf.Max(0f, allowedWorld - skinWorld);
-        else allowedWorld = Mathf.Min(0f, allowedWorld + skinWorld);
-        // clamp to desired
-        if (desiredDxWorld > 0f) allowedWorld = Mathf.Min(allowedWorld, desiredDxWorld);
-        else allowedWorld = Mathf.Max(allowedWorld, desiredDxWorld);
-        return allowedWorld;
-    }
-
-    public float ComputeAllowedDeltaYAabb(Vector2 centerWorld, Vector2 halfExtentsWorld, float desiredDyWorld)
-    {
-        if (!isInitialized || Mathf.Approximately(desiredDyWorld, 0f)) return desiredDyWorld;
-        Vector3 localC3 = transform.InverseTransformPoint(new Vector3(centerWorld.x, centerWorld.y, 0f));
-        Vector2 halfLocal = new Vector2(
-            Mathf.Abs(transform.InverseTransformVector(new Vector3(halfExtentsWorld.x, 0f, 0f)).x),
-            Mathf.Abs(transform.InverseTransformVector(new Vector3(0f, halfExtentsWorld.y, 0f)).y)
-        );
-        float dyLocal = transform.InverseTransformVector(new Vector3(0f, desiredDyWorld, 0f)).y;
-        float x0 = localC3.x;
-        float y0 = localC3.y;
-
-        float halfW = cachedCellSize.x * 0.5f;
-        float halfH = cachedCellSize.y * 0.5f;
-
-        float xMin = x0 - halfLocal.x;
-        float xMax = x0 + halfLocal.x;
-        int cMin = Mathf.Clamp(Mathf.FloorToInt((xMin - cachedOriginLocal.x) / cachedStep.x) - 1, 0, columns - 1);
-        int cMax = Mathf.Clamp(Mathf.CeilToInt((xMax - cachedOriginLocal.x) / cachedStep.x) + 1, 0, columns - 1);
-
-        float faceStart = y0 + (dyLocal > 0f ? halfLocal.y : -halfLocal.y);
-        float faceEnd = faceStart + dyLocal;
-        int rStart = Mathf.Clamp(Mathf.FloorToInt((faceStart - cachedOriginLocal.y) / cachedStep.y), 0, rows - 1);
-        int rEnd = Mathf.Clamp(Mathf.FloorToInt((faceEnd - cachedOriginLocal.y) / cachedStep.y), 0, rows - 1);
-
-        float allowedLocal = dyLocal;
-        if (dyLocal > 0f)
-        {
-            for (int r = rStart + 1; r <= Mathf.Max(rStart, rEnd) + 1 && r < rows; r++)
-            {
-                float cy = cachedOriginLocal.y + r * cachedStep.y;
-                float bottomFace = cy - halfH;
-                for (int c = cMin; c <= cMax; c++)
-                {
-                    Brick b = brickGrid[r, c];
-                    if (b == null || !b.gameObject.activeSelf) continue;
-                    float cx = cachedOriginLocal.x + c * cachedStep.x;
-                    float left = cx - halfW;
-                    float right = cx + halfW;
-                    if (xMax < left || xMin > right) continue;
-                    float cand = (bottomFace - (y0 + halfLocal.y));
-                    if (cand >= 0f && cand < allowedLocal)
-                        allowedLocal = cand;
-                    break;
-                }
-                if (allowedLocal <= 0f) break;
-            }
-        }
-        else
-        {
-            for (int r = rStart - 1; r >= Mathf.Min(rStart, rEnd) - 1 && r >= 0; r--)
-            {
-                float cy = cachedOriginLocal.y + r * cachedStep.y;
-                float topFace = cy + halfH;
-                for (int c = cMin; c <= cMax; c++)
-                {
-                    Brick b = brickGrid[r, c];
-                    if (b == null || !b.gameObject.activeSelf) continue;
-                    float cx = cachedOriginLocal.x + c * cachedStep.x;
-                    float left = cx - halfW;
-                    float right = cx + halfW;
-                    if (xMax < left || xMin > right) continue;
-                    float cand = (topFace - (y0 - halfLocal.y)); // negative
-                    if (cand <= 0f && cand > allowedLocal)
-                        allowedLocal = cand;
-                    break;
-                }
-                if (allowedLocal >= 0f) break;
-            }
-        }
-
-        float pixelWorld = GetCameraHeight() / Mathf.Max(1, Screen.height);
-        float skinWorld = Mathf.Max(0.0005f, pixelWorld * 0.75f);
-        float allowedWorld = transform.TransformVector(new Vector3(0f, allowedLocal, 0f)).y;
-        if (dyLocal > 0f) allowedWorld = Mathf.Max(0f, allowedWorld - skinWorld);
-        else allowedWorld = Mathf.Min(0f, allowedWorld + skinWorld);
-        if (desiredDyWorld > 0f) allowedWorld = Mathf.Min(allowedWorld, desiredDyWorld);
-        else allowedWorld = Mathf.Max(allowedWorld, desiredDyWorld);
-        return allowedWorld;
-    }
+    // Removed unused ComputeAllowedDeltaYAabb()
 
     // Finds the immediate brick above in the same column. Does not skip gaps.
     public Brick FindBrickAboveImmediate(Brick brick)
@@ -831,16 +523,7 @@ public class WallGrid : MonoBehaviour
         return composition[idx];
     }
 
-    private int CountAliveBricks()
-    {
-        int alive = 0;
-        for (int i = 0; i < bricks.Count; i++)
-        {
-            if (bricks[i] != null && bricks[i].gameObject.activeSelf)
-                alive++;
-        }
-        return alive;
-    }
+    // Removed unused CountAliveBricks()
 
     private float GetCameraWidth()
     {
@@ -951,11 +634,7 @@ public class WallGrid : MonoBehaviour
         TryAttachGraveMarker(brick, r, c);
     }
 
-    private System.Collections.IEnumerator BuildRowsAsync(int startRow)
-    {
-        // Streaming build disabled in ring-buffer mode
-        yield break;
-    }
+    // Removed unused BuildRowsAsync()
 
     private void UpdateRingReuse()
     {
@@ -1179,11 +858,7 @@ public class WallGrid : MonoBehaviour
         }
     }
 
-    private void FlashBrick(Brick brick)
-    {
-        if (brick == null) return;
-        StartCoroutine(FlashAndSquash(brick, graveCenterFlashColor, Mathf.Max(0f, graveCenterFlashDuration), Mathf.Max(1f, graveCenterSquashScale), Mathf.Max(0f, graveCenterSquashTime)));
-    }
+    // Removed unused FlashBrick()
 
 
 

@@ -55,6 +55,14 @@ public class UpgradeDefinition : ScriptableObject
     [Tooltip("Portion of overkill damage carried to the next brick per level (0..1). Example: 0.1 = +10% per level.")]
     public float overflowCarryAdd = 0f;
 
+    [Header("Overflow")]
+    [Tooltip("If true, this upgrade removes the 1.0 cap from overflow carry when level > 0.")]
+    public bool enablesOverflowUncapped = false;
+
+    [Header("Shard Amplifier")]
+    [Tooltip("Shard gain percent added per level (e.g., 0.01 = +1% per level). Affects only shard payouts.")]
+    public float shardGainPercentAdd = 0f;
+
     [Header("Side Cannons")]
     [Tooltip("If true, this upgrade enables side cannons when level > 0.")]
     public bool enablesSideCannons = false;
@@ -123,6 +131,24 @@ public class UpgradeDefinition : ScriptableObject
     [Tooltip("Optional override. If empty, tooltip text is generated from non-zero stat fields.")]
     [TextArea] public string effectTextOverride;
 
+    [Header("Stage Clear Bonus (Optional)")]
+    [Tooltip("If > 0, level 1 grants this base stage clear bonus.")]
+    public int stageClearBonusBase = 0;
+    [Tooltip("If > 0, each level beyond 1 adds this amount to the stage clear bonus.")]
+    public int stageClearBonusPerLevel = 0;
+
+    [Header("Passive Income")]
+    [Tooltip("Base passive currency per second granted when level > 0 (applied once).")]
+    public float passiveIncomeBasePerSecond = 0f;
+    [Tooltip("Additional passive income per second added per level beyond level 1.")]
+    public float passiveIncomePerLevel = 0f;
+    [Tooltip("If true, each level adds +1x to multiply the summed passive base per second.")]
+    public bool enablesPassiveBaseMultiplier = false;
+
+    [Header("Meta / QoL")]
+    [Tooltip("If true, unlocking this enables the Auto-Run toggle (movement auto-hold up and auto-retry).")]
+    public bool enablesAutoRunToggle = false;
+
     [Header("Layout")]
     [Tooltip("Optional override: anchor this node relative to this upgrade instead of the first prerequisite.")]
     public UpgradeDefinition layoutAnchor;
@@ -130,6 +156,10 @@ public class UpgradeDefinition : ScriptableObject
     public LayoutDirection8 layoutDir = LayoutDirection8.None;
     [Tooltip("Extra pixel offset applied after directional placement.")]
     public Vector2 layoutOffset = Vector2.zero;
+
+    [Header("Gating")]
+    [Tooltip("Minimum cleared wave index (0-based) required for this upgrade to appear. -1 disables gating.")]
+    public int minClearedWaveIndex = -1;
 
     [Serializable]
     public struct Prereq

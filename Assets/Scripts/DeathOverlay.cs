@@ -14,6 +14,8 @@ public class DeathOverlay : MonoBehaviour
     public Button retryButton;
     public Button upgradesButton;
     public SimpleUpgradePanel simpleUpgradePanel;
+    [Tooltip("Optional label to show auto-run countdown.")]
+    public TextMeshProUGUI autoRunCountdownLabel;
 
     private Action onRetry;
 
@@ -29,26 +31,46 @@ public class DeathOverlay : MonoBehaviour
         onRetry = onRetryClicked;
         if (root != null) root.SetActive(true);
         if (titleText != null) titleText.text = "You touched the red line";
-        if (runCurrencyText != null) runCurrencyText.text = ComputeRunEarned().ToString();
-        if (totalCurrencyText != null) totalCurrencyText.text = totalCurrency.ToString();
+        if (runCurrencyText != null) runCurrencyText.text = $"This run + {ComputeRunEarned()}";
+        if (totalCurrencyText != null) totalCurrencyText.text = $"Total: {totalCurrency}";
+        // Auto-run: if unlocked and enabled, start a 3s auto-retry countdown
+        if (RunModifiers.AutoRunUnlocked && RunModifiers.AutoRunEnabled)
+        {
+            if (autoRunCountdownLabel != null)
+            {
+                autoRunCountdownLabel.gameObject.SetActive(true);
+                autoRunCountdownLabel.text = "Auto-Run in 3 seconds.";
+            }
+            StartCoroutine(AutoRetryRoutine(3f));
+        }
+        else
+        {
+            if (autoRunCountdownLabel != null)
+                autoRunCountdownLabel.gameObject.SetActive(false);
+        }
     }
 
     public void Hide()
     {
         if (root != null) root.SetActive(false);
+        if (autoRunCountdownLabel != null)
+        {
+            autoRunCountdownLabel.text = string.Empty;
+            autoRunCountdownLabel.gameObject.SetActive(false);
+        }
         onRetry = null;
     }
 
     public void RefreshTotals()
     {
         if (totalCurrencyText != null)
-            totalCurrencyText.text = CurrencyStore.TotalCurrency.ToString();
+            totalCurrencyText.text = $"Total: {CurrencyStore.TotalCurrency}";
     }
 
     public void RefreshRunEarned()
     {
         if (runCurrencyText != null)
-            runCurrencyText.text = ComputeRunEarned().ToString();
+            runCurrencyText.text = $"This run + {ComputeRunEarned()}";
     }
 
     private int ComputeRunEarned()
@@ -72,6 +94,24 @@ public class DeathOverlay : MonoBehaviour
             Hide();
             simpleUpgradePanel.Show();
         }
+    }
+
+    private System.Collections.IEnumerator AutoRetryRoutine(float seconds)
+    {
+        float remaining = Mathf.Max(0f, seconds);
+        while (remaining > 0f && root != null && root.activeSelf)
+        {
+            remaining -= Time.unscaledDeltaTime;
+            if (autoRunCountdownLabel != null && autoRunCountdownLabel.gameObject.activeSelf)
+            {
+                int sec = Mathf.Max(0, Mathf.CeilToInt(remaining));
+                autoRunCountdownLabel.text = $"Auto-Run in {sec} seconds.";
+            }
+            yield return null;
+        }
+        // If overlay still visible, trigger retry
+        if (root != null && root.activeSelf)
+            HandleRetry();
     }
 }
 

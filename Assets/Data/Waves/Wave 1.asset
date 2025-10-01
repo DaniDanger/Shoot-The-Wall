@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   columns: 16
   rows: 20
-  descendSpeed: 0.3
+  descendSpeed: 0.4
   verticalViewportFill: 0.5
   bricks:
   - definition: {fileID: 11400000, guid: d002958fd01eefc4c964f4a92c8e1b40, type: 2}

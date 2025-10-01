@@ -17,17 +17,34 @@ public class HitFxShards : MonoBehaviour
     [Tooltip("Spawn shards this far along the impact normal. Use negative to spawn inside the brick face.")]
     public float spawnNormalOffset = -0.02f;
 
+    [Header("Bundling Visuals")]
+    [Tooltip("Tint applied to bundled (units > 1) shards to aid visibility.")]
+    public Color bigShardTint = Color.white;
+    [Tooltip("Scale multiplier for bundled (units > 1) shards.")]
+    public float bigShardSizeMultiplier = 1.6f;
+
     [Range(0.8f, 1.2f)] public float colorJitter = 0.95f; // random brightness multiplier around base
 
     private readonly List<Shard> active = new List<Shard>(256);
     private readonly Stack<Shard> pool = new Stack<Shard>(256);
     private static Sprite pixelSprite;
     private CurrencyPingManager pingManager;
+    [Header("Pooling")]
+    [Tooltip("Instantiate this many shard objects at Awake to avoid runtime spikes.")]
+    public int prewarmCount = 0;
 
     private void Awake()
     {
         EnsurePixelSprite();
         pingManager = FindAnyObjectByType<CurrencyPingManager>();
+        // Prewarm pool to reduce first-hit allocations
+        int target = Mathf.Max(0, prewarmCount);
+        for (int i = 0; i < target; i++)
+        {
+            var s = Get();
+            if (s.obj != null) s.obj.SetActive(false);
+            pool.Push(s);
+        }
     }
 
     private void Update()
@@ -54,34 +71,8 @@ public class HitFxShards : MonoBehaviour
 
     public void EmitShards(Vector3 position, Vector2 direction, int count, Color baseColor, bool crit)
     {
-        EnsurePixelSprite();
-        // Always eject downward so shards immediately fall
-        float angle0 = -90f; // straight down in degrees
-        float spread = Mathf.Abs(spreadAngleDeg);
-        float speedMul = crit ? Mathf.Max(1f, critSpeedMult) : 1f;
-        // Debug.Log($"[ShardTint] crit={crit} base={baseColor} tint={critTint} strength={critTintStrength}");
-        Vector3 pos = position + (Vector3)(direction.normalized * spawnNormalOffset);
-
-        float baseWorld = pixelSprite.bounds.size.x; // world units for sprite width at scale 1
-        float baseScale = baseWorld > 0.0001f ? shardSize / baseWorld : 1f;
-        for (int i = 0; i < count; i++)
-        {
-            var s = Get();
-            s.transform.position = pos;
-            float scale = baseScale;
-            s.transform.localScale = new Vector3(scale, scale, 1f);
-            s.renderer.sprite = pixelSprite;
-            float bright = Random.Range(colorJitter, 1f / Mathf.Max(0.0001f, colorJitter));
-            Color col = baseColor;
-            if (crit)
-                col = Color.Lerp(baseColor, critTint, Mathf.Clamp01(critTintStrength));
-            s.renderer.color = col * new Color(bright, bright, bright, 1f);
-            s.life = shardLifetime;
-            float ang = angle0 + Random.Range(-spread, spread);
-            float spd = Random.Range(speedMin, speedMax) * speedMul;
-            s.velocity = new Vector2(Mathf.Cos(ang * Mathf.Deg2Rad), Mathf.Sin(ang * Mathf.Deg2Rad)) * spd;
-            active.Add(s);
-        }
+        // Delegate to the unified custom emitter with defaults
+        EmitCustomShards(position, direction, Mathf.Max(0, count), 1, 1f, baseColor, crit);
     }
 
     private void EnsurePixelSprite()
@@ -117,16 +108,27 @@ public class HitFxShards : MonoBehaviour
 
     private void Recycle(int index)
     {
+        int last = active.Count - 1;
         var s = active[index];
-        active.RemoveAt(index);
+
+        // Capture final world position and tint before disabling
+        Vector3 pos = s.transform.position;
+        Color col = s.renderer != null ? s.renderer.color : Color.white;
+        float worldSize = pixelSprite != null ? pixelSprite.bounds.size.x : shardSize;
+
+        // Swap-remove to avoid O(n) shifts
+        if (index != last)
+            active[index] = active[last];
+        active.RemoveAt(last);
+
+        // Spawn a ping at the shard's final position with its units value
+        if (pingManager == null)
+            pingManager = FindAnyObjectByType<CurrencyPingManager>();
+        if (pingManager != null)
+            pingManager.EnqueueUnits(pos, col, worldSize * Mathf.Max(1f, s.sizeMultiplier), Mathf.Max(1, s.units));
+
         s.obj.SetActive(false);
         pool.Push(s);
-        if (pingManager != null)
-        {
-            float worldSize = (s.renderer != null && s.renderer.sprite != null) ? s.renderer.bounds.size.x : shardSize;
-            Color col = s.renderer != null ? s.renderer.color : Color.white;
-            pingManager.EnqueueShard(s.transform.position, col, worldSize);
-        }
     }
 
     private struct Shard
@@ -136,6 +138,44 @@ public class HitFxShards : MonoBehaviour
         public SpriteRenderer renderer;
         public Vector2 velocity;
         public float life;
+        public int units;
+        public float sizeMultiplier;
+    }
+
+    // Extended API: emit shards with custom units and size multiplier
+    public void EmitCustomShards(Vector3 position, Vector2 direction, int count, int unitsPerShard, float sizeMultiplier, Color baseColor, bool crit)
+    {
+        EnsurePixelSprite();
+        float angle0 = -90f;
+        float spread = Mathf.Abs(spreadAngleDeg);
+        float speedMul = crit ? Mathf.Max(1f, critSpeedMult) : 1f;
+        Vector3 pos = position + (Vector3)(direction.normalized * spawnNormalOffset);
+
+        float baseWorld = pixelSprite.bounds.size.x;
+        float baseScale = baseWorld > 0.0001f ? shardSize / baseWorld : 1f;
+        float scaleMult = Mathf.Max(0.01f, sizeMultiplier);
+        for (int i = 0; i < count; i++)
+        {
+            var s = Get();
+            s.transform.position = pos;
+            float scale = baseScale * scaleMult;
+            s.transform.localScale = new Vector3(scale, scale, 1f);
+            s.renderer.sprite = pixelSprite;
+            float bright = Random.Range(colorJitter, 1f / Mathf.Max(0.0001f, colorJitter));
+            Color col = baseColor;
+            if (crit)
+                col = Color.Lerp(baseColor, critTint, Mathf.Clamp01(critTintStrength));
+            if (unitsPerShard > 1)
+                col = bigShardTint;
+            s.renderer.color = col * new Color(bright, bright, bright, 1f);
+            s.life = shardLifetime;
+            float ang = angle0 + Random.Range(-spread, spread);
+            float spd = Random.Range(speedMin, speedMax) * speedMul;
+            s.velocity = new Vector2(Mathf.Cos(ang * Mathf.Deg2Rad), Mathf.Sin(ang * Mathf.Deg2Rad)) * spd;
+            s.units = Mathf.Max(1, unitsPerShard);
+            s.sizeMultiplier = scaleMult;
+            active.Add(s);
+        }
     }
 }
 

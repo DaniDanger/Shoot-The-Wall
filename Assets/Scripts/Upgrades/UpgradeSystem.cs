@@ -30,6 +30,13 @@ public static class UpgradeSystem
     public static bool MeetsPrerequisites(UpgradeDefinition def)
     {
         if (def == null) return false;
+        // Gating by cleared wave index
+        if (def.minClearedWaveIndex >= 0)
+        {
+            int cleared = PlayerPrefs.GetInt("Wave_Reached", 0);
+            if (cleared < def.minClearedWaveIndex)
+                return false;
+        }
         if (def.prerequisites == null || def.prerequisites.Count == 0) return true;
         for (int i = 0; i < def.prerequisites.Count; i++)
         {
@@ -87,6 +94,7 @@ public static class UpgradeRuntimeApplier
         float totalHeavyChance = 0f;
         float totalWallDampen = 0f;
         float totalOverflowCarry = 0f;
+        bool overflowUncapped = false;
         bool sideCannons = false;
         int sideDamageBase = 0;
         int sideDamageAddOnly = 0;
@@ -118,11 +126,17 @@ public static class UpgradeRuntimeApplier
         float graveBaseDamage = 0f;
         float graveDamageAdd = 0f;
         int graveDepthAdd = 0;
+        // Auto-Run availability (unlocked if any enabling upgrade has level > 0)
+        bool autoRunAvailable = false;
+        float passiveIncomeBaseAtLevelSum = 0f;
+        int passiveBaseMultiplierLevels = 0;
+        bool stageSelectorUnlocked = false;
         foreach (var def in defs)
         {
             if (def == null) continue;
             int lvl = UpgradeSystem.GetLevel(def);
             if (lvl <= 0) continue;
+            try { Debug.Log($"[AutoRunApply] id={def.id} lvl={lvl} autoToggle={def.enablesAutoRunToggle}"); } catch { }
             if (def.damageAdd != 0) totalDamage += def.damageAdd * lvl;
             if (def.fireRateAdd != 0f) totalFire += def.fireRateAdd * lvl;
             if (def.critChanceAdd != 0f) totalCrit += def.critChanceAdd * lvl;
@@ -132,6 +146,8 @@ public static class UpgradeRuntimeApplier
             if (def.heavySpawnChanceAdd != 0f) totalHeavyChance += def.heavySpawnChanceAdd * lvl;
             if (def.wallDescendDampen != 0f) totalWallDampen += def.wallDescendDampen * lvl;
             if (def.overflowCarryAdd != 0f) totalOverflowCarry += def.overflowCarryAdd * lvl;
+            if (def.enablesOverflowUncapped && lvl > 0)
+                overflowUncapped = true;
             if (def.enablesSideCannons && lvl > 0)
             {
                 sideCannons = true;
@@ -200,6 +216,24 @@ public static class UpgradeRuntimeApplier
                 graveDamageAdd += def.graveBombDamageAdd * lvl;
             if (def.graveBombDepthAdd != 0)
                 graveDepthAdd += Mathf.Max(0, def.graveBombDepthAdd) * lvl;
+            // Auto-Run toggle unlock
+            if (def.enablesAutoRunToggle && lvl > 0)
+                autoRunAvailable = true;
+            // Stage selector unlock detection based on known id or dedicated field
+            if (!string.IsNullOrEmpty(def.id) && def.id.Equals("stageselector", System.StringComparison.OrdinalIgnoreCase) && lvl > 0)
+                stageSelectorUnlocked = true;
+            // Passive income: compute base at current level (base + per-level*(lvl-1))
+            if (def.passiveIncomeBasePerSecond > 0f && lvl > 0)
+            {
+                float baseAtLevel = def.passiveIncomeBasePerSecond;
+                if (lvl > 1 && def.passiveIncomePerLevel > 0f)
+                    baseAtLevel += def.passiveIncomePerLevel * (lvl - 1);
+                passiveIncomeBaseAtLevelSum += baseAtLevel;
+            }
+            if (def.enablesPassiveBaseMultiplier && lvl > 0)
+            {
+                passiveBaseMultiplierLevels += lvl;
+            }
         }
 
         if (shooter != null)
@@ -219,7 +253,7 @@ public static class UpgradeRuntimeApplier
         RunModifiers.HeavySpawnChance = Mathf.Clamp01(totalHeavyChance);
         RunModifiers.WallDescendMultiplier = Mathf.Max(0f, 1f - Mathf.Max(0f, totalWallDampen));
         RunModifiers.ExtraProjectiles = Mathf.Max(0, totalProjectilesAdd);
-        RunModifiers.OverflowCarryPercent = Mathf.Clamp01(totalOverflowCarry);
+        RunModifiers.OverflowCarryPercent = overflowUncapped ? Mathf.Max(0f, totalOverflowCarry) : Mathf.Clamp01(totalOverflowCarry);
         RunModifiers.SideCannonsEnabled = sideCannons;
         RunModifiers.SideCannonDamage = sideCannons ? Mathf.Max(0, sideDamageBase + sideDamageAddOnly) : 0;
         RunModifiers.SideCritsEnabled = sideCritsEnabled;
@@ -232,11 +266,6 @@ public static class UpgradeRuntimeApplier
         RunModifiers.SideHoriCritsEnabled = sideHoriCritsEnabled;
         RunModifiers.SideHoriCritChance = Mathf.Max(0f, sideHoriCritChanceAdd);
         RunModifiers.SideHoriCritMultiplier = Mathf.Max(1f, 1f + sideHoriCritMultAdd);
-        try
-        {
-            Debug.Log($"[SideCrits] enabled={RunModifiers.SideCritsEnabled} chance={RunModifiers.SideCritChance:0.###} mult={RunModifiers.SideCritMultiplier:0.###}");
-        }
-        catch { }
 
         // Apply cluster settings (defaults: 2 shards, dmg=1, speed=some fraction of main?)
         RunModifiers.PassThroughClusterEnabled = clusterEnabled;
@@ -259,6 +288,15 @@ public static class UpgradeRuntimeApplier
             RunModifiers.GraveBombDamage = Mathf.Max(0f, graveBaseDamage + graveDamageAdd);
             RunModifiers.GraveBombDepth = Mathf.Max(1, 1 + graveDepthAdd);
         }
+        // Apply Auto-Run unlocked status after evaluating all defs
+        RunModifiers.AutoRunUnlocked = autoRunAvailable;
+        // Apply passive income rate: (sum base at current level) * (1 + levels)
+        float passiveMult = 1f + Mathf.Max(0, passiveBaseMultiplierLevels);
+        float passiveTotal = Mathf.Max(0f, passiveIncomeBaseAtLevelSum) * passiveMult;
+        RunModifiers.PassiveIncomePerSecond = Mathf.Max(0f, passiveTotal);
+        // Stage selector
+        RunModifiers.StageSelectorUnlocked = stageSelectorUnlocked;
+        try { Debug.Log($"[PassiveIncomeApply] rate={RunModifiers.PassiveIncomePerSecond:0.##}/s"); } catch { }
     }
 }
 

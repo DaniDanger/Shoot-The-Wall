@@ -23,11 +23,14 @@ public class Brick : MonoBehaviour
     private static int onKillExplosionDepth;
     // One-shot flag: when true, this damage should not trigger neighbor explosion.
     private bool suppressKillExplosion;
+    // When true, this brick died due to explosion damage and must not schedule its own explosion wave.
+    private bool killedByExplosion;
 
     private void Awake()
     {
         jiggle = GetComponentInChildren<ScaleJiggle>();
         currentHp = Mathf.Max(1f, maxHp);
+        killedByExplosion = false;
         // Ensure no per-brick Rigidbody2D remains (performance: rely on WallGrid root body)
         var rb = GetComponent<Rigidbody2D>();
         if (rb != null)
@@ -56,6 +59,7 @@ public class Brick : MonoBehaviour
         maxHp = Mathf.Max(1f, hp);
         currentHp = maxHp;
         reward = Mathf.Max(0, rewardValue);
+        killedByExplosion = false;
         // visuals handled by single SpriteRenderer again
         SetVisualScaleByHp();
     }
@@ -95,9 +99,15 @@ public class Brick : MonoBehaviour
     // Explosion damage that should not cause a new explosion chain.
     public void TakeExplosionDamage(float amount)
     {
+        float before = currentHp;
+        float applied = Mathf.Max(0f, amount);
         suppressKillExplosion = true;
-        TakeDamage(amount);
+        TakeDamage(applied);
         suppressKillExplosion = false;
+        float after = currentHp;
+        if (before > 0f && after <= 0f)
+            killedByExplosion = true;
+        try { Debug.Log($"[KillExplosionHit] brick={name} hpBefore={before:0.##} dmg={applied:0.##} hpAfter={after:0.##}"); } catch { }
     }
 
     private void Die()
@@ -170,7 +180,7 @@ public class Brick : MonoBehaviour
         if (sr != null) sr.color = original;
 
         // On-kill explosion: schedule after the stretch/squash completes. No chain reactions.
-        if (!suppressKillExplosion && RunModifiers.OnKillExplosionEnabled && RunModifiers.OnKillExplosionDamage > 0f && onKillExplosionDepth == 0)
+        if (!suppressKillExplosion && !killedByExplosion && RunModifiers.OnKillExplosionEnabled && RunModifiers.OnKillExplosionDamage > 0f && onKillExplosionDepth == 0)
         {
             WallGrid wall = GetComponentInParent<WallGrid>();
             if (wall != null)

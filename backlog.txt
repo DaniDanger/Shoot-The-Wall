@@ -6,31 +6,60 @@ Guidelines
 - When completed, move the item to Done below.
 
 Open
-[idea] super crit chance, but not sure what a super crit should do
-[task] new upgrade for bounce shots
-[task] new upgrade for auto run
-[task] make upgrades to see player stats
-[task] make upgrade to see wall stats
-[task] make upgrade for passive gains
-[idea] add effect like a wall crumble on stage clear
+[bug]
+[fix] retry button in stage cleared does nothing?
+
+[task]
 [task] save system
 [task] options menu
-[idea] maybe add challenges to the game for more depth for progression
+[task] hide lock stage button and only enable when auto run is unlocked
+[task] add shop button to stage clear panel
+[task] new upgrade for bounce shots
+[task] make upgrades to see player stats
+[task] make upgrade to see wall stats
+[task] remove clampping for overflow carry percent(or make upgrade to remove clamping)
 [task] add crt effect
-[task] add a hint on stage clear panel (hint: be warned to progress too early to next stage) [next-minimum]
-[task] add retry option next to continue button for stage clear panel
-[task] bundle shard pings, so shard pings that fly towards currency counter can bundle if there are enough like 10 or so
-[idea] make options highly customizable, not one big toggle for turn off all vfx or camera shake, but maybe dampen camera shake, disable side cannon sfx, very granular options
 
+[mini task]
+[mini task] move stage selector node a little bit more up(layout)
+[mini task] move side cannon crit damage more to the right (layout
+
+[tech]
+[tech] set Application.runInBackground = true in startup (Project Settings already set)
+
+[idea]
+[idea] make options highly customizable, not one big toggle for turn off all vfx or camera shake, but maybe dampen camera shake, disable side cannon sfx, very granular options
+[idea] Stage Clear Bonus scaling upgrades: base multiplier, additive base boost, per-wall mastery multiplier, milestone bonus (e.g., every 5 clears +X), and a rare proc that doubles the bonus.
+[idea] maybe add challenges to the game for more depth for progression
+[idea] add effect like a wall crumble on stage clear
+[idea] super crit chance, but not sure what a super crit should do
+
+[question]
 [question] does grave bomb placement work reliable?
 
-[bug] Brick Kill Explosion can chain-react with Expansion after adding 2 extra dmg levels (now 7). Expected: no chain reaction; verify depth/damage application and guard flags.
 
-Done
+DONE
+[bug] Brick Kill Explosion can chain-react with Expansion after adding 2 extra dmg levels (now 7). Expected: no chain reaction; verify depth/damage application and guard flags.
+[idea] when we have a auto run system, or for passives, we can make an upgrade to increase stage clear bonus
+[idea] when we have a auto run system, or for passives, we can make an upgrade to increase stage clear bonus
+
+[task] add hit sfx for bricks
 
 [bug] shards are white when explosion kill
+[task] add label describer for death over panel to clarify what is total currency and gained last run
+[task] bundle shard pings, so shard pings that fly towards currency counter can bundle if there are enough like 10 or so [next-minimum]
 
 [bug] currency counter in death panel is not updated correctly, meaning the actuall currency counter can still collect money, and the currency counter does not get updated once death panel is open
 [task] add a earned this run currency counter to the death panel
 
-
+[task] add a hint on stage clear panel (hint: be warned to progress too early to next stage)
+[task] add retry option next to continue button for stage clear panel
+[task] in pass through ui, the wave cleared text says wave 0 cleared instead of wave 1
+[task] make the bonus text more descriptive, currently its only +5 (as an example) it should be like Stage Cleared Bonus +5
+[polish] rename PassThroughUI to StageClearPanel (back-compat), fix red line resume, remove duplicate destroy, reset isGameOver after continue
+[task] add Multi Shot 2 upgrade (+1 projectile)
+[polish] upgrade tree: fix invisible nodes after re-entering play (initial scale)
+[polish] upgrade tree: use layoutAnchor for placement; connectors follow layoutAnchor
+[task] add Passive Income upgrade (shop tree)
+[task] new upgrade for auto run
+[task] add Shards Amplifier upgrade (shop tree)

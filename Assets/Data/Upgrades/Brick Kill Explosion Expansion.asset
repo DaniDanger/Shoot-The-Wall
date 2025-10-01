@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Brick Kill Explosion Expansion
   m_EditorClassIdentifier: 
   id: brickkillexplosionexpansion
-  index: 1
+  index: 2
   displayName: Brick Kill Explosion Expansion
   icon: {fileID: 21300000, guid: 3ac0b827210a2fc4c92badc35a3de8a1, type: 3}
   maxLevel: 5
@@ -28,6 +28,8 @@ MonoBehaviour:
   heavySpawnChanceAdd: 0
   wallDescendDampen: 0
   overflowCarryAdd: 0
+  enablesOverflowUncapped: 0
+  shardGainPercentAdd: 0
   enablesSideCannons: 0
   sideCannonBaseDamage: 0
   sideCannonDamageAdd: 0
@@ -56,9 +58,16 @@ MonoBehaviour:
   graveBombDamageAdd: 0
   graveBombDepthAdd: 0
   effectTextOverride: 
+  stageClearBonusBase: 0
+  stageClearBonusPerLevel: 0
+  passiveIncomeBasePerSecond: 0
+  passiveIncomePerLevel: 0
+  enablesPassiveBaseMultiplier: 0
+  enablesAutoRunToggle: 0
   layoutAnchor: {fileID: 0}
   layoutDir: 3
   layoutOffset: {x: -50, y: 0}
+  minClearedWaveIndex: -1
   prerequisites:
   - upgrade: {fileID: 11400000, guid: 190f016d41826d6438df4a8af4475861, type: 2}
     minLevel: 3

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HeavySpawn
   m_EditorClassIdentifier: 
   id: heavyspawn
-  index: 16
+  index: 17
   displayName: Heavy Spawn
   icon: {fileID: 21300000, guid: 5fa6136aea350514fa5cddb25cd42261, type: 3}
   maxLevel: 5
@@ -28,6 +28,8 @@ MonoBehaviour:
   heavySpawnChanceAdd: 0.02
   wallDescendDampen: 0
   overflowCarryAdd: 0
+  enablesOverflowUncapped: 0
+  shardGainPercentAdd: 0
   enablesSideCannons: 0
   sideCannonBaseDamage: 0
   sideCannonDamageAdd: 0
@@ -56,9 +58,16 @@ MonoBehaviour:
   graveBombDamageAdd: 0
   graveBombDepthAdd: 0
   effectTextOverride: Unlock Heavy Bricks (Spawn Chance 10%)
+  stageClearBonusBase: 0
+  stageClearBonusPerLevel: 0
+  passiveIncomeBasePerSecond: 0
+  passiveIncomePerLevel: 0
+  enablesPassiveBaseMultiplier: 0
+  enablesAutoRunToggle: 0
   layoutAnchor: {fileID: 0}
   layoutDir: 2
   layoutOffset: {x: 0, y: -100}
+  minClearedWaveIndex: -1
   prerequisites:
   - upgrade: {fileID: 11400000, guid: b52fd612c9700374ba4538ab86ff50ac, type: 2}
     minLevel: 1

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 // Minimal currency storage for MVP: run currency and persistent total.
 public static class CurrencyStore
@@ -11,6 +12,8 @@ public static class CurrencyStore
     public static int RunCurrency => runCurrency;
     public static int TotalCurrency => PlayerPrefs.GetInt(PersistKey, 0);
     public static int RunStartTotal => runStartTotal;
+
+    public static event Action<int> OnTotalChanged;
 
     public static void ResetRun()
     {
@@ -35,6 +38,7 @@ public static class CurrencyStore
         PlayerPrefs.SetInt(PersistKey, total);
         PlayerPrefs.Save();
         runCurrency = 0;
+        try { OnTotalChanged?.Invoke(total); } catch { }
     }
 
     // Immediately add to the persistent total (used for ping deliveries)
@@ -44,6 +48,7 @@ public static class CurrencyStore
         int total = TotalCurrency + amount;
         PlayerPrefs.SetInt(PersistKey, total);
         PlayerPrefs.Save();
+        try { OnTotalChanged?.Invoke(total); } catch { }
     }
 
     public static bool TrySpendFromTotal(int amount)
@@ -51,8 +56,10 @@ public static class CurrencyStore
         if (amount <= 0) return true;
         int total = TotalCurrency;
         if (total < amount) return false;
-        PlayerPrefs.SetInt(PersistKey, total - amount);
+        total -= amount;
+        PlayerPrefs.SetInt(PersistKey, total);
         PlayerPrefs.Save();
+        try { OnTotalChanged?.Invoke(total); } catch { }
         return true;
     }
 }

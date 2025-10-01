@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: RedlineSpeedDown
   m_EditorClassIdentifier: 
   id: redlinespeeddown
-  index: 20
+  index: 25
   displayName: Redline Speed Down
   icon: {fileID: 21300000, guid: 019d76fbd7004fd4a9b15aaf967ed010, type: 3}
   maxLevel: 10
-  baseCost: 100
-  stepPerLevel: 100
+  baseCost: 50
+  stepPerLevel: 50
   damageAdd: 0
   fireRateAdd: 0
   critChanceAdd: 0
@@ -28,6 +28,8 @@ MonoBehaviour:
   heavySpawnChanceAdd: 0
   wallDescendDampen: 0
   overflowCarryAdd: 0
+  enablesOverflowUncapped: 0
+  shardGainPercentAdd: 0
   enablesSideCannons: 0
   sideCannonBaseDamage: 0
   sideCannonDamageAdd: 0
@@ -56,9 +58,16 @@ MonoBehaviour:
   graveBombDamageAdd: 0
   graveBombDepthAdd: 0
   effectTextOverride: 
+  stageClearBonusBase: 0
+  stageClearBonusPerLevel: 0
+  passiveIncomeBasePerSecond: 0
+  passiveIncomePerLevel: 0
+  enablesPassiveBaseMultiplier: 0
+  enablesAutoRunToggle: 0
   layoutAnchor: {fileID: 0}
   layoutDir: 3
   layoutOffset: {x: -100, y: 0}
+  minClearedWaveIndex: -1
   prerequisites:
   - upgrade: {fileID: 11400000, guid: b52fd612c9700374ba4538ab86ff50ac, type: 2}
     minLevel: 1
