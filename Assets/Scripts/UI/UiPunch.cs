@@ -27,6 +27,10 @@ public class UiPunch : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
     public AudioManager.SfxId clickSfxId = AudioManager.SfxId.UI_Click;
     [Range(0f, 1f)] public float clickSfxVolume = 1f;
     [Range(0f, 0.2f)] public float clickPitchJitter = 0.02f;
+    public bool playHoverSfx = false;
+    public AudioManager.SfxId hoverSfxId = AudioManager.SfxId.UI_Click;
+    [Range(0f, 1f)] public float hoverSfxVolume = 1f;
+    [Range(0f, 0.2f)] public float hoverPitchJitter = 0.02f;
 
     private RectTransform self;
     private Vector3 baseScale = Vector3.one;
@@ -54,6 +58,8 @@ public class UiPunch : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
     public void OnPointerEnter(PointerEventData eventData)
     {
         isHovered = true;
+        if (playHoverSfx && AudioManager.Instance != null)
+            AudioManager.Instance.PlaySfx(hoverSfxId, hoverSfxVolume, hoverPitchJitter);
         if (!CanAnimate()) return;
         float to = isPressed ? pressScale : hoverScale;
         StartAnim(to, inDuration);
@@ -122,5 +128,7 @@ public class UiPunch : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
         isPressed = false;
     }
 }
+
+
 
 

@@ -78,6 +78,8 @@ public class UpgradeDefinition : ScriptableObject
     public float sideCritChanceAdd = 0f;
     [Tooltip("Crit multiplier added per level for side cannons (e.g., 0.2 = +0.2x per level).")]
     public float sideCritMultiplierAdd = 0f;
+    [Tooltip("Side cannon bounce chance added per level (0..1). Example: 0.01 = +1% per level.")]
+    public float sideBounceChanceAdd = 0f;
 
     [Header("Side Cannons (Horizontal)")]
     [Tooltip("If true, this upgrade enables horizontal side cannons (left/right) when level > 0.")]
@@ -108,6 +110,20 @@ public class UpgradeDefinition : ScriptableObject
     public float clusterShardLifetimeAdd = 0f;
     [Tooltip("Shard angle spread added per level (degrees, half-spread).")]
     public float clusterAngleAdd = 0f;
+
+    [Header("Explosive Shots (Main Cannon)")]
+    [Tooltip("Explosive chance added per level (0..1) for main cannon only.")]
+    public float explosiveMainChanceAdd = 0f;
+    [Tooltip("Explosive damage percent added per level (0..1) on top of base percent.")]
+    public float explosiveMainDamagePercentAdd = 0f;
+
+    [Header("Helper Drone")]
+    [Tooltip("If true, enables the helper drone when level > 0.")]
+    public bool enablesHelperDrone = false;
+    [Tooltip("Helper drone damage added per level (absolute).")]
+    public float helperDroneDamageAdd = 0f;
+    [Tooltip("Helper drone fire rate (shots/sec) added per level.")]
+    public float helperDroneFireRateAdd = 0f;
 
     [Header("On-Kill Explosion")]
     [Tooltip("If true, killing a brick deals damage to its immediate left/right neighbors.")]

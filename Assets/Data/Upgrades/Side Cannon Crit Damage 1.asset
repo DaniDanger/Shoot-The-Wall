@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Side Cannon Crit Damage 1
   m_EditorClassIdentifier: 
   id: sidecannoncritdamage1
-  index: 28
+  index: 34
   displayName: Side Cannon Crit Damage 1
   icon: {fileID: 21300000, guid: 65ff43339b62ebd4d8226cb00546612a, type: 3}
   maxLevel: 5
@@ -37,6 +37,7 @@ MonoBehaviour:
   enablesSideCrits: 0
   sideCritChanceAdd: 0
   sideCritMultiplierAdd: 0.1
+  sideBounceChanceAdd: 0
   enablesSideCannonsHorizontal: 0
   horizSideCannonBaseDamage: 0
   horizSideCannonDamageAdd: 0
@@ -50,6 +51,11 @@ MonoBehaviour:
   clusterShardSpeedAdd: 0
   clusterShardLifetimeAdd: 0
   clusterAngleAdd: 0
+  explosiveMainChanceAdd: 0
+  explosiveMainDamagePercentAdd: 0
+  enablesHelperDrone: 0
+  helperDroneDamageAdd: 0
+  helperDroneFireRateAdd: 0
   enablesKillExplosionSides: 0
   killExplosionDamageAdd: 0
   killExplosionExtraDepthAdd: 0

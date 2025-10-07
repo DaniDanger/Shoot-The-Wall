@@ -102,6 +102,14 @@ public static class UpgradeRuntimeApplier
         bool sideCritsEnabled = false;
         float sideCritChanceAdd = 0f;
         float sideCritMultAdd = 0f;
+        float sideBounceChanceAdd = 0f;
+        // Helper drone
+        bool helperEnabled = false;
+        float helperDamageAdd = 0f;
+        float helperFireAdd = 0f;
+        // Explosive main
+        float explosiveChanceAdd = 0f;
+        float explosiveDamagePctAdd = 0f;
         // Horizontal side cannons
         bool sideHori = false;
         int sideHoriDamageBase = 0;
@@ -169,6 +177,20 @@ public static class UpgradeRuntimeApplier
                 sideCritChanceAdd += def.sideCritChanceAdd * lvl;
             if (def.sideCritMultiplierAdd != 0f)
                 sideCritMultAdd += def.sideCritMultiplierAdd * lvl;
+            if (def.sideBounceChanceAdd != 0f)
+                sideBounceChanceAdd += def.sideBounceChanceAdd * lvl;
+            // Helper drone
+            if (def.enablesHelperDrone && lvl > 0)
+                helperEnabled = true;
+            if (def.helperDroneDamageAdd != 0f)
+                helperDamageAdd += def.helperDroneDamageAdd * lvl;
+            if (def.helperDroneFireRateAdd != 0f)
+                helperFireAdd += def.helperDroneFireRateAdd * lvl;
+            // Explosive main
+            if (def.explosiveMainChanceAdd != 0f)
+                explosiveChanceAdd += def.explosiveMainChanceAdd * lvl;
+            if (def.explosiveMainDamagePercentAdd != 0f)
+                explosiveDamagePctAdd += def.explosiveMainDamagePercentAdd * lvl;
 
             // Horizontal side cannons
             if (def.enablesSideCannonsHorizontal && lvl > 0)
@@ -259,6 +281,14 @@ public static class UpgradeRuntimeApplier
         RunModifiers.SideCritsEnabled = sideCritsEnabled;
         RunModifiers.SideCritChance = Mathf.Max(0f, sideCritChanceAdd);
         RunModifiers.SideCritMultiplier = Mathf.Max(1f, 1f + sideCritMultAdd);
+        RunModifiers.SideBounceChance = Mathf.Clamp01(sideBounceChanceAdd);
+        // Helper drone
+        RunModifiers.HelperDroneEnabled = helperEnabled;
+        RunModifiers.HelperDroneDamageAdd = Mathf.Max(0f, helperDamageAdd);
+        RunModifiers.HelperDroneFireRateAdd = Mathf.Max(0f, helperFireAdd);
+        // Explosive main
+        RunModifiers.ExplosiveMainChance = Mathf.Clamp01(explosiveChanceAdd);
+        RunModifiers.ExplosiveMainDamagePercent = Mathf.Max(0f, 0.10f + explosiveDamagePctAdd);
         // Horizontal
         RunModifiers.SideCannonsHorizontalEnabled = sideHori;
         RunModifiers.SideHoriDamage = sideHori ? Mathf.Max(0, sideHoriDamageBase + sideHoriDamageAddOnly) : 0;

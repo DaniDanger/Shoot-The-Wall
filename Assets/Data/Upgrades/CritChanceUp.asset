@@ -37,6 +37,7 @@ MonoBehaviour:
   enablesSideCrits: 0
   sideCritChanceAdd: 0
   sideCritMultiplierAdd: 0
+  sideBounceChanceAdd: 0
   enablesSideCannonsHorizontal: 0
   horizSideCannonBaseDamage: 0
   horizSideCannonDamageAdd: 0
@@ -50,6 +51,11 @@ MonoBehaviour:
   clusterShardSpeedAdd: 0
   clusterShardLifetimeAdd: 0
   clusterAngleAdd: 0
+  explosiveMainChanceAdd: 0
+  explosiveMainDamagePercentAdd: 0
+  enablesHelperDrone: 0
+  helperDroneDamageAdd: 0
+  helperDroneFireRateAdd: 0
   enablesKillExplosionSides: 0
   killExplosionDamageAdd: 0
   killExplosionExtraDepthAdd: 0

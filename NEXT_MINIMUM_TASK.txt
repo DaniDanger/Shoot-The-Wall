@@ -12,6 +12,7 @@ Rules
 - End of session (when stopping work/closing Cursor): replace with the next minimum task.
 
 Current next task
-- Create a StartScreen scene (basic UI + load Game scene)
+[mini task] switch continue and retry, so continue is on the right side of the stage clear panel
+
 
 

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MultiShot 2
   m_EditorClassIdentifier: 
   id: multishot2
-  index: 20
+  index: 25
   displayName: Multi Shot 2
   icon: {fileID: 21300000, guid: f2631c98459b4d54bb6369064f0ab516, type: 3}
   maxLevel: 1
@@ -37,6 +37,7 @@ MonoBehaviour:
   enablesSideCrits: 0
   sideCritChanceAdd: 0
   sideCritMultiplierAdd: 0
+  sideBounceChanceAdd: 0
   enablesSideCannonsHorizontal: 0
   horizSideCannonBaseDamage: 0
   horizSideCannonDamageAdd: 0
@@ -50,6 +51,11 @@ MonoBehaviour:
   clusterShardSpeedAdd: 0
   clusterShardLifetimeAdd: 0
   clusterAngleAdd: 0
+  explosiveMainChanceAdd: 0
+  explosiveMainDamagePercentAdd: 0
+  enablesHelperDrone: 0
+  helperDroneDamageAdd: 0
+  helperDroneFireRateAdd: 0
   enablesKillExplosionSides: 0
   killExplosionDamageAdd: 0
   killExplosionExtraDepthAdd: 0
@@ -66,8 +72,17 @@ MonoBehaviour:
   enablesAutoRunToggle: 0
   layoutAnchor: {fileID: 0}
   layoutDir: 4
-  layoutOffset: {x: 100, y: 0}
+  layoutOffset: {x: 75, y: 0}
   minClearedWaveIndex: -1
   prerequisites:
   - upgrade: {fileID: 11400000, guid: f93eee09f45e65049aaf53b47d70536d, type: 2}
     minLevel: 1
+
+
+
+
+
+
+
+
+

@@ -13,6 +13,8 @@ public class AudioManager : MonoBehaviour
         BrickHit = 3,
         BrickKill = 4,
         UI_Click = 5,
+        UI_Slide = 6,
+        UI_TurnOn = 7,
     }
 
     [System.Serializable]
@@ -45,6 +47,18 @@ public class AudioManager : MonoBehaviour
     private AudioSource[] pool;
     private int nextIdx;
 
+    [Header("Music")]
+    [Tooltip("Dedicated AudioSource for music (auto-created if null).")]
+    public AudioSource musicSource;
+    private System.Collections.IEnumerator musicFade;
+    [Header("Music Clips")]
+    [Tooltip("Music used on the Start Screen.")]
+    public AudioClip startMenuMusic;
+    [Tooltip("Fade-in duration for the Start Screen music (seconds).")]
+    public float startMenuFadeIn = 1.5f;
+    [Tooltip("Whether the Start Screen music should loop.")]
+    public bool startMenuLoop = true;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -56,6 +70,7 @@ public class AudioManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         LoadPrefs();
         BuildPool();
+        EnsureMusicSource();
     }
 
     private void BuildPool()
@@ -100,10 +115,77 @@ public class AudioManager : MonoBehaviour
         src.Play();
     }
 
+    private void EnsureMusicSource()
+    {
+        if (musicSource != null) return;
+        musicSource = gameObject.AddComponent<AudioSource>();
+        musicSource.playOnAwake = false;
+        musicSource.loop = true;
+        musicSource.spatialBlend = 0f;
+        RefreshMusicVolume();
+    }
+
+    private float GetMusicTargetVolume()
+    {
+        return Mathf.Clamp01(masterVolume * musicVolume);
+    }
+
+    public void PlayMusic(AudioClip clip, float fadeInDuration = 1f, bool loop = true)
+    {
+        if (clip == null) return;
+        EnsureMusicSource();
+        if (musicFade != null) StopCoroutine(musicFade);
+        musicSource.Stop();
+        musicSource.clip = clip;
+        musicSource.loop = loop;
+        musicSource.volume = 0f;
+        musicSource.Play();
+        musicFade = FadeMusic(0f, GetMusicTargetVolume(), Mathf.Max(0.0001f, fadeInDuration));
+        StartCoroutine(musicFade);
+    }
+
+    public void StopMusic(float fadeOutDuration = 0.5f)
+    {
+        if (musicSource == null) return;
+        if (musicFade != null) StopCoroutine(musicFade);
+        float from = musicSource.volume;
+        musicFade = FadeMusic(from, 0f, Mathf.Max(0.0001f, fadeOutDuration));
+        StartCoroutine(musicFade);
+    }
+
+    public void PlayStartMenuMusic()
+    {
+        if (startMenuMusic == null) return;
+        PlayMusic(startMenuMusic, startMenuFadeIn, startMenuLoop);
+    }
+
+    private System.Collections.IEnumerator FadeMusic(float from, float to, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime; // fade independent of gameplay time scale
+            float u = Mathf.Clamp01(elapsed / duration);
+            float eased = 1f - (1f - u) * (1f - u);
+            if (musicSource != null)
+                musicSource.volume = Mathf.LerpUnclamped(from, to, eased);
+            yield return null;
+        }
+        if (musicSource != null) musicSource.volume = to;
+        musicFade = null;
+    }
+
+    private void RefreshMusicVolume()
+    {
+        if (musicSource != null)
+            musicSource.volume = GetMusicTargetVolume();
+    }
+
     public void SetMasterVolume(float v)
     {
         masterVolume = Mathf.Clamp01(v);
         SavePrefs();
+        RefreshMusicVolume();
     }
 
     public void SetSfxVolume(float v)
@@ -116,6 +198,7 @@ public class AudioManager : MonoBehaviour
     {
         musicVolume = Mathf.Clamp01(v);
         SavePrefs();
+        RefreshMusicVolume();
     }
 
     public void SetBrickKillEnabled(bool enabled)

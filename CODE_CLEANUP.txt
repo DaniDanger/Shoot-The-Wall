@@ -1,0 +1,39 @@
+Shorter, simpler, better: every cleanup should ideally reduce total lines while keeping or improving clarity.
+
+Code cleaning guideline (post-task)
+
+Must
+- Remove temporary debug logs; keep only guarded logs if truly useful (e.g., if (Debug.isDebugBuild)).
+- Delete unused code/fields/usings; prune commented-out code.
+- Naming pass: intention-revealing names on fields/methods; align with current behavior.
+- Pooling safety: verify OnDisable/Return resets state (color, scale, flags, velocity, colliders).
+- Reference wiring: no FindObjectOfType per-frame; prefer inspector or explicit injection (e.g., spawner → drone).
+- Time usage: UI/FX = unscaled; gameplay logic/movement/shooting = scaled (be consistent).
+- Lint pass compiles clean; no warnings introduced.
+
+Should
+- DRY where it reduces total complexity (shared helpers only if reused 3+ places or removes tricky duplication).
+- Collapse trivial code/branches; prefer guard clauses; keep nesting shallow.
+- Inspector hygiene: expose only designer-tuned fields with Tooltip/Header; keep runtime/internal fields private.
+- Defaults sane: set inspector defaults so features work when dropped.
+- Null-safety: early-out on missing optional refs; fail loudly for required ones (Debug.LogError once).
+- Namespace grouping: group by feature (e.g., FX/, Helpers/); avoid over-namespacing unless it clarifies usage.
+
+Optional (case-by-case)
+- Convert repeated Debug.Log to a small static Logger with tags.
+- Micro-helpers for tiny lerps/ease if they appear in 3+ files.
+- Wrap feature toggles under a single RunModifiers accessor if many related fields emerge.
+
+Not necessary
+- Over-abstracting for “future reuse” when it increases lines and indirection.
+- Event systems without a clear project-wide pattern; prefer direct calls (like GameManager → Spawner).
+
+Quick checklist (per task)
+- Remove temp logs/comments/unused.
+- Naming pass.
+- Reset state on pool return.
+- Verify references are injected or assigned; no per-frame finds.
+- Time-consistency check (scaled vs unscaled).
+- Lint/build; quick runtime smoke test.
+
+Philosophy: fewer lines to achieve the same result usually means clearer, more beautiful code—not by removing whitespace or shortening names, but by better structure, concise syntax, and sensible DRY where it truly reduces complexity.

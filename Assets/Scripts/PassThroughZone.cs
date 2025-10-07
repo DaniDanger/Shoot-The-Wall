@@ -96,6 +96,14 @@ public class PassThroughZone : MonoBehaviour
         if (projectile.isClusterShard)
             return;
 
+        // Allow certain projectiles (e.g., helper shots) to opt out of pass-through cluster
+        var ignoreField = typeof(Projectile).GetField("ignorePassThroughCluster", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (ignoreField != null && projectile != null)
+        {
+            bool ignore = (bool)ignoreField.GetValue(projectile);
+            if (ignore) return;
+        }
+
         if (!projectile.TryGetComponent<Rigidbody2D>(out var rb) || rb.linearVelocity.y <= 0f)
             return;
 

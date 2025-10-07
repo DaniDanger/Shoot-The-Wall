@@ -28,6 +28,9 @@ public static class RunModifiers
     public static float SideCritChance = 0f;
     public static float SideCritMultiplier = 1f;
 
+    // Side cannon bounce (single ricochet chance 0..1)
+    public static float SideBounceChance = 0f;
+
     // Grave bomb (spawn a bomb brick next run at death location)
     public static bool GraveBombEnabled = false;
     public static float GraveBombDamage = 1f;
@@ -67,6 +70,15 @@ public static class RunModifiers
         get { return PlayerPrefs.GetInt(ReRunOnClearKey, 0) == 1; }
         set { PlayerPrefs.SetInt(ReRunOnClearKey, value ? 1 : 0); PlayerPrefs.Save(); }
     }
+
+    // Explosive shots (main cannon only)
+    public static float ExplosiveMainChance = 0f;           // 0..1
+    public static float ExplosiveMainDamagePercent = 0.10f; // fraction of projectile dmg
+
+    // Helper Drone
+    public static bool HelperDroneEnabled = false;
+    public static float HelperDroneDamageAdd = 0f;
+    public static float HelperDroneFireRateAdd = 0f;
 }
 
 

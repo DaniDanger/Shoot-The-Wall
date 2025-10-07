@@ -140,6 +140,8 @@ public class AutoShooter : MonoBehaviour
                 dmg = Mathf.Max(0f, dmg * Mathf.Max(1f, critMultiplier));
             }
             projectile.Launch(basePos + offset, dir, projectileSpeed, projectileLifetime, dmg, crit);
+            // Configure explosive main chance (per projectile roll)
+            projectile.ConfigureExplosive(RunModifiers.ExplosiveMainChance, RunModifiers.ExplosiveMainDamagePercent);
         }
 
         // Side cannons fire on their own cadence in Update via FireSideVolley()
@@ -174,6 +176,8 @@ public class AutoShooter : MonoBehaviour
                 dmgL = Mathf.Max(0f, dmgL * Mathf.Max(1f, RunModifiers.SideCritMultiplier));
             }
             pL.Launch(leftPos, leftDir, projectileSpeed, projectileLifetime, dmgL, critL);
+            // Enable single-bounce ricochet on angled side cannons only
+            pL.ConfigureRicochet(true, RunModifiers.SideBounceChance);
         }
 
         Vector3 rightPos = sideRightMuzzle != null ? sideRightMuzzle.position : (basePos + new Vector3(0.4f, 0f, 0f));
@@ -189,6 +193,8 @@ public class AutoShooter : MonoBehaviour
                 dmgR = Mathf.Max(0f, dmgR * Mathf.Max(1f, RunModifiers.SideCritMultiplier));
             }
             pR.Launch(rightPos, rightDir, projectileSpeed, projectileLifetime, dmgR, critR);
+            // Enable single-bounce ricochet on angled side cannons only
+            pR.ConfigureRicochet(true, RunModifiers.SideBounceChance);
         }
 
         // Play side shoot SFX once per side volley

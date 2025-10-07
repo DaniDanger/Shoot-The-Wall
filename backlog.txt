@@ -2,22 +2,41 @@ BACKLOG
 
 Guidelines
 - Keep entries concrete and concise; multi-line if needed.
-- Optional tags: [bug], [idea], [task], [polish], [tech], [maybe] [questions](use only if helpful).
+- Optional tags: [bug], [idea],[upgrade], [task], [polish], [tech], [maybe] [questions][polish](use only if helpful).
 - When completed, move the item to Done below.
 
 Open
 [bug]
+[bug] auto run does not progess to next stage, when stage is cleared
+
+[upgrades]
+[upgrade] maybe upgrade to increase base bounce or ignore and simply make bounce chance higher then 100, to bounce multiple times
+[upgrade] extra life, is shoot, red line once more to the bottom
+[upgrade] make upgrade that multiplies stage clear bonus with the number of times a wall has been cleared
 
 [task]
 [task] save system
 [task] hide lock stage button and only enable when auto run is unlocked
 [task] add shop button to stage clear panel
-[task] new upgrade for bounce shots
 [task] make upgrades to see player stats
 [task] make upgrade to see wall stats
-[task] add crt effect
+[task] add damage popup numbers
+[task] add new slider for global voluem in options menu
+[task] make a new button to switch between audio and graphics or gameplay in options menu
+[task] make specific graphic options, for global volume, like disable only bloom, disable shit
+[task] new option slider or toggle for camera shake, slider better, for camera shake intensity
+[task] make it so ship cannot move beyond camera bounds, this means also for up!
+[task] adjust helper drone default damage
+
+
+[task] resource-powered super shot (laser/rocket/bomb TBD)
+[task] helpers: piercing laser drone moves left↔right (low dmg, pierces wall)
+[task] add new brick type: Random Brick (on-hit positive/negative effects)
 
 [mini task]
+
+[mini task] add shop button to stage cleared panel
+
 
 [tech]
 [tech] set Application.runInBackground = true in startup (Project Settings already set)
@@ -28,12 +47,29 @@ Open
 [idea] maybe add challenges to the game for more depth for progression
 [idea] add effect like a wall crumble on stage clear
 [idea] super crit chance, but not sure what a super crit should do
+[idea] future brick variants: bomber, piercing, crit multiplier, freeze-time
 
 [question]
 [question] does grave bomb placement work reliable?
 
+[polish]
+[polish]lens distortion bump on brick kill
+[polish] make bricks interactable on hover in startscreen
+
+[playtest feedback]
+we can now clear wall 4, but the ship even after adding the explosive shots and the helper is feeling weak
+
+with a fully maxxed out upgrade tree the ship feels, weak and the helper drone basically does nothing
+both the helper drones and the main ship needs to get over all more powerful
+
 
 DONE
+
+[task] helpers: projectile drone moves left↔right (low dmg, normal ROF)
+
+[task] main cannon: explosive shots
+[task] add crt effect
+
 [bug] Brick Kill Explosion can chain-react with Expansion after adding 2 extra dmg levels (now 7). Expected: no chain reaction; verify depth/damage application and guard flags.
 [idea] when we have a auto run system, or for passives, we can make an upgrade to increase stage clear bonus
 [idea] when we have a auto run system, or for passives, we can make an upgrade to increase stage clear bonus
@@ -63,3 +99,4 @@ DONE
 [task] add Passive Income upgrade (shop tree)
 [task] new upgrade for auto run
 [task] add Shards Amplifier upgrade (shop tree)
+[task] new upgrade for bounce shots (side cannons; decide damage falloff)

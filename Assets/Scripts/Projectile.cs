@@ -51,12 +51,44 @@ public class Projectile : MonoBehaviour
     private Vector3 originalLocalScale;
     private bool scaleCaptured;
 
+    // Ricochet (side cannons)
+    private bool canRicochet;
+    private bool hasRicocheted;
+    private float ricochetChance;
+
+    [Header("Bounce VFX")]
+    public Color bounceFlashColor = new Color(0f, 0.9f, 1f, 1f);
+    public float bounceFlashDuration = 0.08f;
+    private System.Collections.IEnumerator bounceFlashRoutine;
+
+    // Explosive shots (main cannon only)
+    private float explosiveChance;
+    private float explosiveDamagePercent; // fraction of this projectile's damage
+    private bool willExplode;
+    [Header("Explosive Telegraph")]
+    public Color explosiveTelegraphColor = new Color(1f, 0.6f, 0.1f, 1f);
+    [Range(1f, 1.2f)] public float explosiveTelegraphScale = 1.08f;
+    [Header("Explosive VFX (test)")]
+    [Tooltip("Temporary: Prefab spawned on explosive hit (will replace with pool later). Optional.")]
+    public FX.ExplosionShotVfx explosionVfxPrefab;
+    [Tooltip("End scale override passed to the VFX. 1.0 ~= one cell; tweak to cover neighbors.")]
+    public float explosionVfxEndScale = 1.0f;
+
+    // Flags to ignore main-weapon-only behaviors (set by helper drones, etc.)
+    private bool ignoreOverflowCarry;
+    private bool ignorePassThroughCluster;
+
     private void Awake()
     {
         rigidBody = GetComponent<Rigidbody2D>();
         ownCollider = GetComponent<Collider2D>();
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         if (spriteRenderer != null) baseColor = spriteRenderer.color;
+        if (!scaleCaptured)
+        {
+            originalLocalScale = transform.localScale;
+            scaleCaptured = true;
+        }
         if (sCachedShards == null)
             sCachedShards = FindAnyObjectByType<HitFxShards>();
         shardFx = sCachedShards;
@@ -77,6 +109,17 @@ public class Projectile : MonoBehaviour
     {
         if (rigidBody != null)
             rigidBody.linearVelocity = Vector2.zero;
+        if (bounceFlashRoutine != null)
+        {
+            StopCoroutine(bounceFlashRoutine);
+            bounceFlashRoutine = null;
+        }
+        if (spriteRenderer != null)
+            spriteRenderer.color = baseColor;
+        // Reset any telegraph scaling and flags
+        transform.localScale = originalLocalScale;
+        willExplode = false;
+        if (ownCollider != null) ownCollider.enabled = true;
     }
 
     public void Initialize(ProjectilePool pool, Camera camera)
@@ -95,6 +138,7 @@ public class Projectile : MonoBehaviour
         lifeRemaining = lifetime;
         hasHit = false;
         wasCrit = crit;
+        hasRicocheted = false;
         clusterSequenceActive = false;
         isClusterShard = false;
         // Visual: tint projectile on crit using shard tint color
@@ -120,6 +164,35 @@ public class Projectile : MonoBehaviour
         prevPos = transform.position;
     }
 
+    public void ConfigureRicochet(bool enabled, float chance)
+    {
+        canRicochet = enabled;
+        ricochetChance = Mathf.Clamp01(chance);
+    }
+
+    public void ConfigureExplosive(float chance, float damagePercent)
+    {
+        explosiveChance = Mathf.Clamp01(chance);
+        explosiveDamagePercent = Mathf.Max(0f, damagePercent);
+        // Pre-roll and telegraph
+        willExplode = (explosiveChance > 0f) && (Random.value < explosiveChance);
+        if (willExplode)
+        {
+            if (spriteRenderer != null)
+                spriteRenderer.color = explosiveTelegraphColor;
+            transform.localScale = originalLocalScale * Mathf.Max(1f, explosiveTelegraphScale);
+        }
+    }
+
+    public void SetTint(Color c)
+    {
+        if (spriteRenderer != null)
+            spriteRenderer.color = c;
+    }
+
+    public void SetIgnoreOverflowCarry(bool ignore) { ignoreOverflowCarry = ignore; }
+    public void SetIgnorePassThroughCluster(bool ignore) { ignorePassThroughCluster = ignore; }
+
     private void Update()
     {
         if (!clusterSequenceActive)
@@ -132,6 +205,7 @@ public class Projectile : MonoBehaviour
 
         if (mainCamera == null)
             return;
+
 
         // Logic-level collision: cast segment each frame (cheap) and resolve first brick hit
         var wall = cachedWall;
@@ -155,7 +229,7 @@ public class Projectile : MonoBehaviour
                 hitBrick.TakeDamage(dmg);
                 float after = hitBrick.CurrentHp;
 
-                if (RunModifiers.OverflowCarryPercent > 0f && after <= 0f && before > 0f)
+                if (!ignoreOverflowCarry && RunModifiers.OverflowCarryPercent > 0f && after <= 0f && before > 0f)
                 {
                     float overkill = Mathf.Max(0f, dmg - Mathf.Max(0f, before));
                     if (overkill > 0f)
@@ -197,7 +271,63 @@ public class Projectile : MonoBehaviour
                     //am.PlaySfx(AudioManager.SfxId.BrickHit, 1f, 0.04f);
                 }
 
-                ReturnToPool();
+                // Explosive main proc (pre-rolled per projectile)
+                if (willExplode && explosiveDamagePercent > 0f)
+                {
+                    float splash = Mathf.Max(0f, dmg * Mathf.Max(0f, explosiveDamagePercent));
+                    if (splash > 0f)
+                    {
+                        int rr, cc;
+                        if (wall != null && wall.TryGetCoordinates(hitBrick, out rr, out cc))
+                        {
+                            // Spawn temporary VFX prefab at impact (to be replaced by a pool later)
+                            // Spawn from pool (fallback to prefab if pool missing)
+                            var pool = FX.ExplosionShotVfxPool.Instance;
+                            if (pool != null)
+                                pool.PlayAt(impactPoint, explosionVfxEndScale);
+                            else if (explosionVfxPrefab != null)
+                                Object.Instantiate(explosionVfxPrefab).PlayAt(impactPoint, explosionVfxEndScale);
+                            // Apply splash to 8 neighbors immediately
+                            for (int dr = -1; dr <= 1; dr++)
+                            {
+                                for (int dc = -1; dc <= 1; dc++)
+                                {
+                                    if (dr == 0 && dc == 0) continue;
+                                    Brick nb = wall.GetBrickAt(rr + dr, cc + dc);
+                                    if (nb != null && nb.gameObject.activeSelf)
+                                        nb.TakeExplosionDamage(splash);
+                                }
+                            }
+                            // here we would trigger explosive VFX
+                            // here we would trigger explosive SFX
+                            try { Debug.Log($"[ExplosiveMain] splash={splash:0.##} r={rr} c={cc}"); } catch { }
+                        }
+                    }
+                }
+
+                // Attempt ricochet (single bounce) if enabled
+                if (canRicochet && !hasRicocheted && Random.value < Mathf.Clamp01(ricochetChance))
+                {
+                    hasRicocheted = true;
+                    // Cheap mirror bounce: flip X of direction, keep Y
+                    Vector2 prevDir = direction;
+                    Vector2 newDir = new Vector2(-direction.x, direction.y);
+                    if (newDir.sqrMagnitude <= 0.000001f) newDir = Vector2.up;
+                    direction = newDir.normalized;
+                    // Nudge position slightly forward to avoid immediate re-hit
+                    Vector3 nudge = (Vector3)(direction * 0.02f);
+                    transform.position = (impactPoint + nudge);
+                    if (rigidBody != null) rigidBody.linearVelocity = direction * speed;
+                    // here we would trigger bounce VFX
+                    // here we would trigger bounce SFX
+                    PlayBounceFlash();
+                    try { Debug.Log($"[SideBounce] success prev=({prevDir.x:0.##},{prevDir.y:0.##}) -> new=({direction.x:0.##},{direction.y:0.##}) pos=({impactPoint.x:0.##},{impactPoint.y:0.##})"); } catch { }
+                    // Continue travelling without returning to pool
+                }
+                else
+                {
+                    ReturnToPool();
+                }
             };
 
             Brick hit; Vector3 point;
@@ -271,6 +401,33 @@ public class Projectile : MonoBehaviour
             return;
         StartCoroutine(ClusterSplitRoutine(Mathf.Max(1, shardCount), Mathf.Max(0f, shardDamage), Mathf.Max(0.01f, shardSpeed), Mathf.Max(0.01f, shardLifetime), Mathf.Clamp(spreadDegrees, 0f, 85f)));
     }
+
+    private void PlayBounceFlash()
+    {
+        if (spriteRenderer == null || bounceFlashDuration <= 0f)
+            return;
+        if (bounceFlashRoutine != null)
+            StopCoroutine(bounceFlashRoutine);
+        bounceFlashRoutine = BounceFlashRoutine();
+        StartCoroutine(bounceFlashRoutine);
+    }
+
+    private System.Collections.IEnumerator BounceFlashRoutine()
+    {
+        Color prev = spriteRenderer.color;
+        spriteRenderer.color = bounceFlashColor;
+        float t = 0f;
+        float d = Mathf.Max(0.0001f, bounceFlashDuration);
+        while (t < d)
+        {
+            t += Time.deltaTime;
+            yield return null;
+        }
+        spriteRenderer.color = prev;
+        bounceFlashRoutine = null;
+    }
+
+    // removed impact squash-pop
 
     private System.Collections.IEnumerator ClusterSplitRoutine(int shardCount, float shardDamage, float shardSpeed, float shardLifetime, float spreadDegrees)
     {

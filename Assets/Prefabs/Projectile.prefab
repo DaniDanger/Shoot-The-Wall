@@ -179,3 +179,9 @@ MonoBehaviour:
   shardSpawnOffsetJitter: 0.05
   clusterExplosionVfx: {fileID: 8525990746615576120, guid: 546d410938d0c674fbd14c9f6645f079, type: 3}
   isClusterShard: 0
+  bounceFlashColor: {r: 0, g: 0.9, b: 1, a: 1}
+  bounceFlashDuration: 0.08
+  explosiveTelegraphColor: {r: 1, g: 0.6, b: 0.1, a: 1}
+  explosiveTelegraphScale: 1.2
+  explosionVfxPrefab: {fileID: 3488456936954009196, guid: ef645db25dd5a394cb0f6e992a15e71f, type: 3}
+  explosionVfxEndScale: 1
